@@ -1,0 +1,26 @@
+{
+  "name": "cinema-booking-system",
+  "version": "1.0.0",
+  "description": "Cinema Hall Ticket Booking System - Production Full Stack Application",
+  "scripts": {
+    "install:all": "npm --prefix server install && npm --prefix client install",
+    "seed": "npm --prefix server run seed",
+    "test": "npm --prefix server test",
+    "test:acceptance": "npx --prefix server vitest run tests/acceptance.test.js",
+    "server": "npm --prefix server run dev",
+    "client": "npm --prefix client run dev",
+    "build:client": "npm --prefix client run build",
+    "dev": "node -e \"const { spawn } = require('child_process'); const s = spawn('npm', ['--prefix', 'server', 'run', 'dev'], { stdio: 'inherit' }); const c = spawn('npm', ['--prefix', 'client', 'run', 'dev'], { stdio: 'inherit' }); process.on('SIGINT', () => { s.kill(); c.kill(); process.exit(); });\""
+  },
+  "keywords": [
+    "cinema-booking",
+    "seat-reservation",
+    "react",
+    "nodejs",
+    "mongodb",
+    "framer-motion",
+    "tailwind"
+  ],
+  "author": "Algions AI Labs Assessment Candidate",
+  "license": "ISC"
+}

@@ -1,0 +1,442 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Cinema Hall Ticket Booking System API",
+    "version": "1.0.0",
+    "description": "Production REST API for cinema seat reservation, multi-screen scheduling, transactional booking, and usher entry validation.",
+    "contact": {
+      "name": "Algions AI Labs Assessment Submission"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000",
+      "description": "Local Development Server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Enter your JWT token obtained from /api/auth/login or /api/auth/register"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string", "example": "John Doe" },
+          "email": { "type": "string", "example": "john@example.com" },
+          "phone": { "type": "string", "example": "9876543210" },
+          "role": { "type": "string", "enum": ["customer", "admin"], "example": "customer" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Movie": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "title": { "type": "string", "example": "Inception" },
+          "description": { "type": "string" },
+          "genre": { "type": "array", "items": { "type": "string" }, "example": ["Sci-Fi", "Action"] },
+          "duration": { "type": "number", "description": "Duration in minutes", "example": 148 },
+          "language": { "type": "string", "example": "English" },
+          "format": { "type": "string", "enum": ["2D", "3D", "IMAX", "4DX"], "example": "IMAX" },
+          "rating": { "type": "string", "enum": ["U", "UA", "A", "S"], "example": "UA" },
+          "posterUrl": { "type": "string" },
+          "status": { "type": "string", "enum": ["now_showing", "coming_soon", "ended"], "example": "now_showing" }
+        }
+      },
+      "Theatre": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "name": { "type": "string", "example": "PVR ICON Palladium" },
+          "location": { "type": "string", "example": "High Street Phoenix, Lower Parel" },
+          "city": { "type": "string", "example": "Mumbai" },
+          "facilities": { "type": "array", "items": { "type": "string" }, "example": ["Dolby Atmos", "Recliners", "Food Court"] }
+        }
+      },
+      "Screen": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "theatre": { "type": "string", "description": "Theatre ID" },
+          "name": { "type": "string", "example": "Screen 1 - IMAX 3D" },
+          "screenType": { "type": "string", "enum": ["Standard", "Premium", "IMAX", "4DX"] },
+          "totalSeats": { "type": "number", "example": 60 },
+          "seatCategories": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": { "type": "string", "example": "Platinum" },
+                "price": { "type": "number", "example": 450 },
+                "rows": { "type": "array", "items": { "type": "string" }, "example": ["A", "B"] },
+                "seatsPerRow": { "type": "number", "example": 10 },
+                "color": { "type": "string", "example": "#a855f7" }
+              }
+            }
+          }
+        }
+      },
+      "Showtime": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "movie": { "$ref": "#/components/schemas/Movie" },
+          "screen": { "$ref": "#/components/schemas/Screen" },
+          "startTime": { "type": "string", "format": "date-time" },
+          "endTime": { "type": "string", "format": "date-time" },
+          "status": { "type": "string", "enum": ["scheduled", "cancelled", "completed"] }
+        }
+      },
+      "SeatHold": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "showtime": { "type": "string" },
+          "seatId": { "type": "string", "example": "A-5" },
+          "user": { "type": "string" },
+          "status": { "type": "string", "enum": ["held", "booked", "released", "expired"] },
+          "expiresAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "Booking": {
+        "type": "object",
+        "properties": {
+          "_id": { "type": "string" },
+          "bookingRef": { "type": "string", "example": "BK-A7K29X4P" },
+          "user": { "$ref": "#/components/schemas/User" },
+          "showtime": { "$ref": "#/components/schemas/Showtime" },
+          "seats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "seatId": { "type": "string", "example": "A-5" },
+                "category": { "type": "string", "example": "Platinum" },
+                "price": { "type": "number", "example": 450 }
+              }
+            }
+          },
+          "totalAmount": { "type": "number", "example": 900 },
+          "status": { "type": "string", "enum": ["confirmed", "cancelled", "used"] },
+          "paymentStatus": { "type": "string", "enum": ["pending", "completed", "refunded"] },
+          "qrCode": { "type": "string", "description": "Base64 PNG Data URL" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "success": { "type": "boolean", "example": false },
+          "message": { "type": "string", "example": "Invalid credentials" },
+          "errors": { "type": "array", "items": { "type": "object" } }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "summary": "Register a new customer account",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string", "example": "Sarah Connor" },
+                  "email": { "type": "string", "example": "sarah@example.com" },
+                  "password": { "type": "string", "example": "securePassword123" },
+                  "phone": { "type": "string", "example": "9876543210" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Customer registered successfully" },
+          "400": { "$ref": "#/components/schemas/ErrorResponse" }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "summary": "Log in and obtain JWT Bearer token",
+        "tags": ["Authentication"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string", "example": "admin@cinema.com" },
+                  "password": { "type": "string", "example": "admin123" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login successful" },
+          "401": { "$ref": "#/components/schemas/ErrorResponse" }
+        }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "summary": "Get authenticated user profile",
+        "tags": ["Authentication"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": { "description": "Profile details" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/api/movies": {
+      "get": {
+        "summary": "List movies with filters, search, and pagination",
+        "tags": ["Movies"],
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "description": "Search in movie title" },
+          { "name": "genre", "in": "query", "schema": { "type": "string" } },
+          { "name": "language", "in": "query", "schema": { "type": "string" } },
+          { "name": "format", "in": "query", "schema": { "type": "string" } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["now_showing", "coming_soon", "ended"] } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 12 } }
+        ],
+        "responses": {
+          "200": { "description": "Movies list returned successfully" }
+        }
+      },
+      "post": {
+        "summary": "Add a new movie (Admin only)",
+        "tags": ["Movies"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Movie" } } }
+        },
+        "responses": {
+          "201": { "description": "Movie created" },
+          "403": { "description": "Admin access required" }
+        }
+      }
+    },
+    "/api/movies/{id}": {
+      "get": {
+        "summary": "Get movie details by ID",
+        "tags": ["Movies"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Movie details" }, "404": { "description": "Not found" } }
+      },
+      "put": {
+        "summary": "Update movie (Admin only)",
+        "tags": ["Movies"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Movie updated" } }
+      },
+      "delete": {
+        "summary": "Delete movie (Admin only)",
+        "tags": ["Movies"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Movie deleted" } }
+      }
+    },
+    "/api/showtimes": {
+      "get": {
+        "summary": "List scheduled showtimes",
+        "tags": ["Showtimes"],
+        "parameters": [
+          { "name": "movie", "in": "query", "schema": { "type": "string" } },
+          { "name": "screen", "in": "query", "schema": { "type": "string" } },
+          { "name": "date", "in": "query", "schema": { "type": "string", "format": "date" } }
+        ],
+        "responses": { "200": { "description": "Showtimes list" } }
+      },
+      "post": {
+        "summary": "Schedule a new showtime with conflict detection (Admin only)",
+        "tags": ["Showtimes"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["movie", "screen", "startTime"],
+                "properties": {
+                  "movie": { "type": "string" },
+                  "screen": { "type": "string" },
+                  "startTime": { "type": "string", "format": "date-time" },
+                  "endTime": { "type": "string", "format": "date-time" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Showtime scheduled" },
+          "400": { "description": "Overlapping schedule conflict detected" }
+        }
+      }
+    },
+    "/api/showtimes/{id}": {
+      "get": {
+        "summary": "Get showtime details with live seat availability matrix",
+        "tags": ["Showtimes"],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Seating grid with available/held/booked flags" } }
+      }
+    },
+    "/api/bookings/hold": {
+      "post": {
+        "summary": "Temporarily hold seats with 10-minute expiry (Acceptance Test #1 & #2)",
+        "tags": ["Bookings & Holds"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["showtimeId", "seats"],
+                "properties": {
+                  "showtimeId": { "type": "string" },
+                  "seats": { "type": "array", "items": { "type": "string" }, "example": ["A-1", "A-2"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Seats held successfully with expiration timestamp" },
+          "409": { "description": "Conflict: Seats already held or booked by another user" }
+        }
+      }
+    },
+    "/api/bookings": {
+      "post": {
+        "summary": "Confirm reservation from held seats, issue ticket and QR code",
+        "tags": ["Bookings & Holds"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["showtimeId", "seats"],
+                "properties": {
+                  "showtimeId": { "type": "string" },
+                  "seats": { "type": "array", "items": { "type": "string" }, "example": ["A-1", "A-2"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Booking confirmed with unique BK-XXXX reference and QR code" },
+          "400": { "description": "Seat hold expired or seats invalid" }
+        }
+      },
+      "get": {
+        "summary": "List all bookings across system (Admin only)",
+        "tags": ["Bookings & Holds"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Paginated bookings list" } }
+      }
+    },
+    "/api/bookings/my-bookings": {
+      "get": {
+        "summary": "List booking history for logged-in customer",
+        "tags": ["Bookings & Holds"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Customer reservations" } }
+      }
+    },
+    "/api/bookings/{id}/cancel": {
+      "patch": {
+        "summary": "Cancel booking, simulate refund, and release seats",
+        "tags": ["Bookings & Holds"],
+        "security": [{ "BearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": {
+          "200": { "description": "Booking cancelled, status refunded, seats freed" },
+          "400": { "description": "Already cancelled or already used" }
+        }
+      }
+    },
+    "/api/bookings/validate": {
+      "post": {
+        "summary": "Usher ticket entry gate validation (Acceptance Test #4)",
+        "tags": ["Bookings & Holds"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["bookingRef"],
+                "properties": {
+                  "bookingRef": { "type": "string", "example": "BK-A7K29X4P" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Ticket successfully admitted and marked as used" },
+          "400": { "description": "Ticket already used, cancelled, or invalid reference" }
+        }
+      }
+    },
+    "/api/dashboard/stats": {
+      "get": {
+        "summary": "Aggregate box office metrics (Admin only)",
+        "tags": ["Admin Analytics"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "High level KPIs" } }
+      }
+    },
+    "/api/dashboard/occupancy": {
+      "get": {
+        "summary": "Occupancy percentage per auditorium and screening (Acceptance Test #5)",
+        "tags": ["Admin Analytics"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Real-time occupancy report" } }
+      }
+    },
+    "/api/dashboard/sales": {
+      "get": {
+        "summary": "Revenue breakdown by timeline, movie, and venue",
+        "tags": ["Admin Analytics"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Financial sales report" } }
+      }
+    },
+    "/api/dashboard/audit-logs": {
+      "get": {
+        "summary": "Audit trail of critical business operations",
+        "tags": ["Admin Analytics"],
+        "security": [{ "BearerAuth": [] }],
+        "responses": { "200": { "description": "Audit event log records" } }
+      }
+    }
+  }
+}
