@@ -200,20 +200,20 @@ export const ManageScreensPage = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-dark-800 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#e5e3dc] gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center">
-            <Tv className="w-7 h-7 text-primary-400 mr-2.5" />
+          <h1 className="text-2xl sm:text-3xl font-black text-[#252824] tracking-tight flex items-center">
+            <Tv className="w-7 h-7 text-[#cf785b] mr-2.5" />
             Manage Screens & Auditoriums
           </h1>
-          <p className="text-xs sm:text-sm text-dark-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-[#777a72] mt-0.5">
             Configure hall layouts, tiered seat categories, pricing tiers, and capacity
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="self-start sm:self-auto flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-950/40 transition-all hover:scale-105 active:scale-95"
+          className="self-start sm:self-auto flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold text-[#252824] bg-[#252824] hover:bg-[#344638] text-white shadow-lg shadow-primary-950/40 transition-all hover:scale-105 active:scale-95"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Screen</span>
@@ -221,12 +221,12 @@ export const ManageScreensPage = () => {
       </div>
 
       {/* Filter by Theatre */}
-      <div className="flex items-center space-x-3 bg-dark-900 border border-dark-800 p-3 rounded-2xl max-w-sm">
-        <Building2 className="w-4 h-4 text-primary-400 flex-shrink-0" />
+      <div className="flex items-center space-x-3 bg-white border border-[#e5e3dc] p-3 rounded-2xl max-w-sm">
+        <Building2 className="w-4 h-4 text-[#cf785b] flex-shrink-0" />
         <select
           value={selectedTheatreFilter}
           onChange={(e) => setSelectedTheatreFilter(e.target.value)}
-          className="w-full bg-transparent text-xs sm:text-sm text-dark-200 focus:outline-none cursor-pointer"
+          className="w-full bg-transparent text-xs sm:text-sm text-[#252824] focus:outline-none cursor-pointer"
         >
           <option value="all">All Cinema Locations</option>
           {theatres.map((th) => (
@@ -259,7 +259,7 @@ export const ManageScreensPage = () => {
                 key={screen._id}
                 initial={{ opacity: 0, y: 15 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-dark-900 border border-dark-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between hover:border-dark-700 transition-all"
+                className="bg-white border border-[#e5e3dc] rounded-2xl p-6 shadow-xl flex flex-col justify-between hover:border-[#e5e3dc] transition-all"
               >
                 <div>
                   <div className="flex items-start justify-between mb-3">
@@ -269,7 +269,7 @@ export const ManageScreensPage = () => {
                     <div className="flex items-center space-x-1.5">
                       <button
                         onClick={() => handleOpenEdit(screen)}
-                        className="p-1.5 rounded-lg bg-dark-800 hover:bg-dark-700 text-dark-300 hover:text-white transition-colors"
+                        className="p-1.5 rounded-lg bg-[#f7f6f2] hover:bg-[#e9e8df] text-[#555850] hover:text-[#252824] transition-colors"
                         title="Edit Screen"
                       >
                         <Pencil className="w-4 h-4" />
@@ -287,38 +287,38 @@ export const ManageScreensPage = () => {
                     </div>
                   </div>
 
-                  <h3 className="text-lg font-bold text-white mb-0.5">{screen.name}</h3>
-                  <p className="text-xs text-primary-400 font-medium mb-3 flex items-center">
+                  <h3 className="text-lg font-bold text-[#252824] mb-0.5">{screen.name}</h3>
+                  <p className="text-xs text-[#cf785b] font-medium mb-3 flex items-center">
                     <Building2 className="w-3.5 h-3.5 mr-1" />
                     {theatreName}
                   </p>
 
-                  <div className="p-3 bg-dark-950/80 rounded-xl border border-dark-800 flex justify-between items-center text-xs mb-4">
-                    <span className="text-dark-400 font-medium">Total Capacity</span>
-                    <span className="text-sm font-black text-white">{totalSeats} Seats</span>
+                  <div className="p-3 bg-[#f7f6f2] rounded-xl border border-[#e5e3dc] flex justify-between items-center text-xs mb-4">
+                    <span className="text-[#777a72] font-medium">Total Capacity</span>
+                    <span className="text-sm font-black text-[#252824]">{totalSeats} Seats</span>
                   </div>
 
                   {/* Seat Categories breakdown */}
                   <div className="space-y-2">
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-dark-400">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-[#777a72]">
                       Tier Breakdown
                     </p>
                     <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                       {(screen.seatCategories || []).map((cat, idx) => (
                         <div
                           key={idx}
-                          className="flex items-center justify-between p-2 rounded-lg bg-dark-850/80 border border-dark-800 text-xs"
+                          className="flex items-center justify-between p-2 rounded-lg bg-dark-850/80 border border-[#e5e3dc] text-xs"
                         >
                           <div className="flex items-center space-x-2">
                             <span
                               className="w-2.5 h-2.5 rounded-full"
                               style={{ backgroundColor: cat.color || '#a855f7' }}
                             />
-                            <span className="font-semibold text-white">{cat.name}</span>
+                            <span className="font-semibold text-[#252824]">{cat.name}</span>
                           </div>
                           <div className="text-right text-[11px]">
                             <span className="text-emerald-400 font-bold">₹{cat.price}</span>
-                            <span className="text-dark-400 ml-2">
+                            <span className="text-[#777a72] ml-2">
                               ({(cat.rows || 1) * (cat.seatsPerRow || 1)} seats)
                             </span>
                           </div>
@@ -343,12 +343,12 @@ export const ManageScreensPage = () => {
         <form onSubmit={handleSubmit} className="space-y-5 text-xs sm:text-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Parent Theatre</label>
+              <label className="block text-[#555850] font-semibold mb-1">Parent Theatre</label>
               <select
                 value={formData.theatre}
                 onChange={(e) => setFormData({ ...formData, theatre: e.target.value })}
                 required
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               >
                 <option value="">Select Theatre</option>
                 {theatres.map((th) => (
@@ -360,31 +360,31 @@ export const ManageScreensPage = () => {
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Screen Name / Number</label>
+              <label className="block text-[#555850] font-semibold mb-1">Screen Name / Number</label>
               <input
                 type="text"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g. Screen 1 - Dolby IMAX"
                 required
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
           </div>
 
           {/* Seat Categories Manager */}
-          <div className="pt-3 border-t border-dark-800">
+          <div className="pt-3 border-t border-[#e5e3dc]">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h4 className="text-sm font-bold text-white">Auditorium Seat Tiers</h4>
-                <p className="text-[11px] text-dark-400">
+                <h4 className="text-sm font-bold text-[#252824]">Auditorium Seat Tiers</h4>
+                <p className="text-[11px] text-[#777a72]">
                   Total calculated seats: {calculateTotalSeats(formData.seatCategories)}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleAddCategory}
-                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-dark-800 hover:bg-dark-700 text-primary-300 border border-dark-700 transition-colors"
+                className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#f7f6f2] hover:bg-[#e9e8df] text-[#344638] border border-[#e5e3dc] transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Tier</span>
@@ -395,53 +395,53 @@ export const ManageScreensPage = () => {
               {formData.seatCategories.map((cat, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-12 gap-2 p-3 bg-dark-950 rounded-xl border border-dark-800 items-center"
+                  className="grid grid-cols-12 gap-2 p-3 bg-[#f7f6f2] rounded-xl border border-[#e5e3dc] items-center"
                 >
                   <div className="col-span-3">
-                    <label className="block text-[10px] text-dark-400 mb-0.5">Tier Name</label>
+                    <label className="block text-[10px] text-[#777a72] mb-0.5">Tier Name</label>
                     <input
                       type="text"
                       value={cat.name}
                       onChange={(e) => handleCategoryChange(index, 'name', e.target.value)}
                       required
                       placeholder="Name"
-                      className="w-full px-2 py-1.5 bg-dark-900 border border-dark-700 rounded-lg text-white text-xs"
+                      className="w-full px-2 py-1.5 bg-white border border-[#e5e3dc] rounded-lg text-[#252824] text-xs"
                     />
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-[10px] text-dark-400 mb-0.5">Price (₹)</label>
+                    <label className="block text-[10px] text-[#777a72] mb-0.5">Price (₹)</label>
                     <input
                       type="number"
                       value={cat.price}
                       onChange={(e) => handleCategoryChange(index, 'price', e.target.value)}
                       required
                       min={1}
-                      className="w-full px-2 py-1.5 bg-dark-900 border border-dark-700 rounded-lg text-white text-xs"
+                      className="w-full px-2 py-1.5 bg-white border border-[#e5e3dc] rounded-lg text-[#252824] text-xs"
                     />
                   </div>
 
                   <div className="col-span-2">
-                    <label className="block text-[10px] text-dark-400 mb-0.5">Rows</label>
+                    <label className="block text-[10px] text-[#777a72] mb-0.5">Rows</label>
                     <input
                       type="number"
                       value={cat.rows}
                       onChange={(e) => handleCategoryChange(index, 'rows', e.target.value)}
                       required
                       min={1}
-                      className="w-full px-2 py-1.5 bg-dark-900 border border-dark-700 rounded-lg text-white text-xs"
+                      className="w-full px-2 py-1.5 bg-white border border-[#e5e3dc] rounded-lg text-[#252824] text-xs"
                     />
                   </div>
 
                   <div className="col-span-3">
-                    <label className="block text-[10px] text-dark-400 mb-0.5">Seats/Row</label>
+                    <label className="block text-[10px] text-[#777a72] mb-0.5">Seats/Row</label>
                     <input
                       type="number"
                       value={cat.seatsPerRow}
                       onChange={(e) => handleCategoryChange(index, 'seatsPerRow', e.target.value)}
                       required
                       min={1}
-                      className="w-full px-2 py-1.5 bg-dark-900 border border-dark-700 rounded-lg text-white text-xs"
+                      className="w-full px-2 py-1.5 bg-white border border-[#e5e3dc] rounded-lg text-[#252824] text-xs"
                     />
                   </div>
 
@@ -460,18 +460,18 @@ export const ManageScreensPage = () => {
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-dark-800">
+          <div className="flex justify-end space-x-3 pt-4 border-t border-[#e5e3dc]">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-dark-300 hover:text-white bg-dark-800 hover:bg-dark-700"
+              className="px-4 py-2 rounded-xl text-[#555850] hover:text-[#252824] bg-[#f7f6f2] hover:bg-[#e9e8df]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={formSubmitting}
-              className="px-5 py-2 rounded-xl text-white bg-primary-600 hover:bg-primary-500 font-bold shadow-md shadow-primary-950/40"
+              className="px-5 py-2 rounded-xl text-[#252824] bg-[#252824] hover:bg-[#344638] text-white font-bold shadow-md shadow-primary-950/40"
             >
               {formSubmitting ? 'Saving...' : isEditing ? 'Update Screen' : 'Save Screen'}
             </button>

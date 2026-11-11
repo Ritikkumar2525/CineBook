@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Film, User, LogOut, Ticket, Shield, Menu, X, ChevronDown } from 'lucide-react';
+import { User, LogOut, Ticket, Shield, Menu, X, ChevronDown, Film } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -32,35 +32,31 @@ export const Navbar = () => {
   };
 
   const navLinkClass = ({ isActive }) =>
-    `px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+    `px-3.5 py-1.5 text-[14px] font-medium transition-colors ${
       isActive
-        ? 'text-primary-400 bg-primary-950/40 border border-primary-500/20'
-        : 'text-dark-200 hover:text-white hover:bg-dark-800'
+        ? 'text-[#252824] font-semibold border-b-2 border-[#cf785b]'
+        : 'text-[#555850] hover:text-[#cf785b]'
     }`;
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-dark-900/80 backdrop-blur-md border-b border-dark-800">
+    <header className="sticky top-0 z-50 w-full bg-[#f7f6f2]/95 backdrop-blur-md border-b border-[#e5e3dc]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2.5 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-primary-700 via-primary-600 to-primary-400 flex items-center justify-center shadow-lg shadow-primary-900/30 group-hover:scale-105 transition-transform">
-              <Film className="w-5 h-5 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-black tracking-tight text-white group-hover:text-primary-400 transition-colors">
-                Cine<span className="text-primary-500">Book</span>
-              </span>
-            </div>
+        <div className="flex items-center justify-between h-[76px]">
+          {/* StayBnb style Brand Logo */}
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <span className="brand-mark shadow-sm">c.</span>
+            <span className="font-display font-bold text-[22px] tracking-tight text-[#252824] group-hover:text-[#cf785b] transition-colors">
+              CineBook
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-2">
+          <nav className="hidden md:flex items-center space-x-6">
             <NavLink to="/" className={navLinkClass}>
               Home
             </NavLink>
             <NavLink to="/movies" className={navLinkClass}>
-              Movies
+              Find a movie
             </NavLink>
             {isAuthenticated && (
               <NavLink to="/my-bookings" className={navLinkClass}>
@@ -70,88 +66,77 @@ export const Navbar = () => {
             {isAdmin && (
               <NavLink
                 to="/admin"
-                className="flex items-center space-x-1.5 px-3 py-2 rounded-lg text-sm font-medium text-amber-300 hover:text-amber-200 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all"
+                className="px-3 py-1 text-[13px] font-semibold text-[#344638] bg-[#e5eae4] rounded-full hover:bg-[#cbdbcb] transition-colors flex items-center gap-1.5"
               >
-                <Shield className="w-4 h-4" />
-                <span>Admin Portal</span>
+                <Shield className="w-3.5 h-3.5" />
+                Admin Portal
               </NavLink>
             )}
           </nav>
 
-          {/* Desktop Right Side / Auth */}
+          {/* User / Auth CTA buttons */}
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center space-x-3 p-1.5 pr-3 rounded-full bg-dark-800/80 border border-dark-700/60 hover:border-dark-600 transition-all"
+                  className="flex items-center space-x-2.5 px-3 py-1.5 rounded-full border border-[#e5e3dc] bg-white hover:border-[#cf785b] transition-colors"
                 >
-                  <div className="w-8 h-8 rounded-full bg-primary-600/30 border border-primary-500/40 text-primary-300 flex items-center justify-center font-bold text-sm">
+                  <div className="w-7 h-7 rounded-full bg-[#344638] text-white flex items-center justify-center font-display font-semibold text-xs">
                     {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                   </div>
-                  <span className="text-sm font-medium text-dark-200 max-w-[120px] truncate">
-                    {user?.name || 'Account'}
+                  <span className="text-xs font-semibold text-[#252824] max-w-[120px] truncate">
+                    {user?.name}
                   </span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-dark-400 transition-transform duration-200 ${
-                      dropdownOpen ? 'rotate-180' : ''
-                    }`}
-                  />
+                  <ChevronDown className="w-3.5 h-3.5 text-[#777a72]" />
                 </button>
 
                 <AnimatePresence>
                   {dropdownOpen && (
                     <motion.div
-                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      initial={{ opacity: 0, y: 8, scale: 0.96 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      exit={{ opacity: 0, y: 8, scale: 0.96 }}
                       transition={{ duration: 0.15 }}
-                      className="absolute right-0 mt-2 w-56 rounded-2xl bg-dark-900 border border-dark-700/80 shadow-2xl py-2 z-50 divide-y divide-dark-800"
+                      className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-panel border border-[#e5e3dc] py-2 z-50"
                     >
-                      <div className="px-4 py-3">
-                        <p className="text-xs text-dark-400 font-medium">Signed in as</p>
-                        <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
-                        <p className="text-xs text-dark-400 truncate">{user?.email}</p>
-                        <div className="mt-2">
-                          <span
-                            className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase ${
-                              user?.role === 'admin'
-                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                                : 'bg-primary-500/10 text-primary-400 border border-primary-500/30'
-                            }`}
-                          >
-                            {user?.role || 'Customer'}
-                          </span>
-                        </div>
+                      <div className="px-4 py-2 border-b border-[#e5e3dc]">
+                        <p className="text-xs text-[#777a72]">Signed in as</p>
+                        <p className="text-sm font-semibold text-[#252824] truncate">
+                          {user?.email}
+                        </p>
+                        <span className="inline-block mt-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded bg-[#e5eae4] text-[#344638]">
+                          {user?.role}
+                        </span>
                       </div>
 
                       <div className="py-1">
                         <Link
                           to="/my-bookings"
                           onClick={() => setDropdownOpen(false)}
-                          className="flex items-center px-4 py-2.5 text-sm text-dark-200 hover:text-white hover:bg-dark-800 transition-colors"
+                          className="flex items-center px-4 py-2 text-xs font-medium text-[#41453f] hover:bg-[#f7f6f2] hover:text-[#252824]"
                         >
-                          <Ticket className="w-4 h-4 mr-3 text-dark-400" />
+                          <Ticket className="w-4 h-4 mr-2.5 text-[#777a72]" />
                           My Bookings
                         </Link>
                         {isAdmin && (
                           <Link
                             to="/admin"
                             onClick={() => setDropdownOpen(false)}
-                            className="flex items-center px-4 py-2.5 text-sm text-amber-300 hover:text-amber-200 hover:bg-dark-800 transition-colors"
+                            className="flex items-center px-4 py-2 text-xs font-medium text-[#344638] hover:bg-[#e5eae4]"
                           >
-                            <Shield className="w-4 h-4 mr-3 text-amber-400" />
-                            Admin Dashboard
+                            <Shield className="w-4 h-4 mr-2.5" />
+                            Admin Operations
                           </Link>
                         )}
                       </div>
 
-                      <div className="py-1">
+                      <div className="border-t border-[#e5e3dc] pt-1">
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center px-4 py-2.5 text-sm text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors"
+                          className="w-full flex items-center px-4 py-2 text-xs font-medium text-[#a33d35] hover:bg-[#fdf5f2]"
                         >
-                          <LogOut className="w-4 h-4 mr-3 text-rose-400" />
+                          <LogOut className="w-4 h-4 mr-2.5" />
                           Sign Out
                         </button>
                       </div>
@@ -160,28 +145,26 @@ export const Navbar = () => {
                 </AnimatePresence>
               </div>
             ) : (
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-4">
                 <Link
                   to="/login"
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-dark-200 hover:text-white hover:bg-dark-800 transition-all"
+                  className="text-[14px] font-medium text-[#41453f] hover:text-[#cf785b] transition-colors"
                 >
-                  Sign In
+                  Log in
                 </Link>
-                <Link
-                  to="/register"
-                  className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-primary-600 hover:bg-primary-500 shadow-md shadow-primary-900/30 transition-all hover:scale-105"
-                >
-                  Register
+                <Link to="/register" className="nav-cta">
+                  <span>Join us</span>
+                  <span className="text-xs">↗</span>
                 </Link>
               </div>
             )}
           </div>
 
-          {/* Mobile menu hamburger button */}
+          {/* Mobile menu button */}
           <div className="flex md:hidden items-center">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-dark-300 hover:text-white hover:bg-dark-800 focus:outline-none"
+              className="p-2 rounded-lg text-[#252824] hover:bg-[#e9e8df] transition-colors"
               aria-label="Toggle menu"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -190,85 +173,72 @@ export const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Drawer Menu */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="md:hidden border-b border-dark-800 bg-dark-900/95 backdrop-blur-xl px-4 pt-2 pb-6 space-y-3"
+            className="md:hidden border-b border-[#e5e3dc] bg-[#f7f6f2] px-4 pt-3 pb-6 space-y-3"
           >
-            <div className="flex flex-col space-y-1">
-              <Link
-                to="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg text-base font-medium text-dark-200 hover:text-white hover:bg-dark-800"
-              >
-                Home
-              </Link>
-              <Link
-                to="/movies"
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2 rounded-lg text-base font-medium text-dark-200 hover:text-white hover:bg-dark-800"
-              >
-                Movies
-              </Link>
-              {isAuthenticated && (
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-semibold text-[#252824]"
+            >
+              Home
+            </Link>
+            <Link
+              to="/movies"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block py-2 text-sm font-semibold text-[#252824]"
+            >
+              Find a movie
+            </Link>
+            {isAuthenticated ? (
+              <>
                 <Link
                   to="/my-bookings"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 rounded-lg text-base font-medium text-dark-200 hover:text-white hover:bg-dark-800"
+                  className="block py-2 text-sm font-semibold text-[#252824]"
                 >
                   My Bookings
                 </Link>
-              )}
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 rounded-lg text-base font-medium text-amber-300 bg-amber-500/10 hover:bg-amber-500/20"
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block py-2 text-sm font-semibold text-[#344638]"
+                  >
+                    Admin Dashboard
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="w-full text-left py-2 text-sm font-semibold text-[#a33d35]"
                 >
-                  Admin Portal
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <div className="pt-2 flex flex-col gap-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block py-2 text-center text-sm font-semibold border border-[#e5e3dc] rounded-full bg-white text-[#252824]"
+                >
+                  Log in
                 </Link>
-              )}
-            </div>
-
-            <div className="pt-4 border-t border-dark-800">
-              {isAuthenticated ? (
-                <div className="space-y-3">
-                  <div className="px-3">
-                    <p className="text-sm font-semibold text-white">{user?.name}</p>
-                    <p className="text-xs text-dark-400">{user?.email}</p>
-                  </div>
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Sign Out
-                  </button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <Link
-                    to="/login"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center py-2.5 rounded-xl text-sm font-medium text-dark-200 bg-dark-800 hover:text-white text-center"
-                  >
-                    Sign In
-                  </Link>
-                  <Link
-                    to="/register"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center justify-center py-2.5 rounded-xl text-sm font-medium text-white bg-primary-600 hover:bg-primary-500 text-center shadow"
-                  >
-                    Register
-                  </Link>
-                </div>
-              )}
-            </div>
+                <Link
+                  to="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="nav-cta justify-center"
+                >
+                  Join us ↗
+                </Link>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

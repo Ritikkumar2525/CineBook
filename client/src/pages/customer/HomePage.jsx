@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Film, Play, Star, Clock, Calendar, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, Film, Star, Clock, Calendar, ArrowUpRight, Sparkles } from 'lucide-react';
 import { moviesApi } from '../../services/api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import SearchBar from '../../components/ui/SearchBar';
-import Badge from '../../components/ui/Badge';
 
 export const HomePage = () => {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchTitle, setSearchTitle] = useState('');
+  const [selectedFormat, setSelectedFormat] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -24,19 +23,19 @@ export const HomePage = () => {
       const res = await moviesApi.getAll();
       const movieData = res.data?.movies || res.data?.data || res.data || [];
       setMovies(Array.isArray(movieData) ? movieData : []);
-      setError(null);
     } catch (err) {
       console.error('Failed to load movies:', err);
-      setError('Unable to load movies. Please check connection.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearchSubmit = (q) => {
-    if (q && q.trim()) {
-      navigate(`/movies?search=${encodeURIComponent(q.trim())}`);
-    }
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (searchTitle.trim()) params.append('search', searchTitle.trim());
+    if (selectedFormat) params.append('format', selectedFormat);
+    navigate(`/movies?${params.toString()}`);
   };
 
   const nowShowing = movies.filter(
@@ -46,265 +45,280 @@ export const HomePage = () => {
     (m) => (m.status || '').toLowerCase() === 'coming_soon'
   );
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: 'easeOut' },
-    },
-  };
-
-  const MovieCard = ({ movie }) => {
-    const genres = Array.isArray(movie.genre)
-      ? movie.genre
-      : (movie.genre || '').split(',').map((g) => g.trim()).filter(Boolean);
-
-    const poster =
-      movie.posterUrl ||
-      'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80';
-
-    return (
-      <motion.div
-        variants={cardVariants}
-        whileHover={{ y: -8, transition: { duration: 0.2 } }}
-        className="group relative bg-dark-900 rounded-2xl overflow-hidden border border-dark-800 shadow-xl flex flex-col justify-between transition-all hover:border-primary-500/50 hover:shadow-primary-950/40"
-      >
-        <Link to={`/movies/${movie._id}`} className="block relative aspect-[2/3] overflow-hidden bg-dark-950">
-          <img
-            src={poster}
-            alt={movie.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-            onError={(e) => {
-              e.target.src =
-                'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80';
-            }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity" />
-
-          {/* Format / Status badges on poster */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-            {movie.format && (
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-primary-600/90 text-white backdrop-blur-md shadow">
-                {movie.format}
-              </span>
-            )}
-            {movie.language && (
-              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-dark-900/80 text-dark-200 backdrop-blur-md border border-dark-700/60">
-                {movie.language}
-              </span>
-            )}
-          </div>
-
-          {movie.rating && (
-            <div className="absolute top-3 right-3 flex items-center space-x-1 px-2 py-0.5 rounded bg-dark-900/80 backdrop-blur-md border border-dark-700/60 text-amber-400 text-xs font-bold">
-              <Star className="w-3.5 h-3.5 fill-amber-400" />
-              <span>{movie.rating}</span>
-            </div>
-          )}
-        </Link>
-
-        {/* Info */}
-        <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-          <div>
-            <div className="flex flex-wrap gap-1 mb-2">
-              {genres.slice(0, 2).map((g, idx) => (
-                <span
-                  key={idx}
-                  className="text-[11px] font-medium text-primary-400 bg-primary-950/60 border border-primary-500/20 px-2 py-0.5 rounded-full"
-                >
-                  {g}
-                </span>
-              ))}
-            </div>
-
-            <Link to={`/movies/${movie._id}`}>
-              <h3 className="text-base font-bold text-white group-hover:text-primary-400 transition-colors line-clamp-1 mb-1">
-                {movie.title}
-              </h3>
-            </Link>
-
-            <div className="flex items-center space-x-3 text-xs text-dark-400 mb-3">
-              {movie.duration && (
-                <span className="flex items-center">
-                  <Clock className="w-3.5 h-3.5 mr-1 text-dark-400" />
-                  {movie.duration} min
-                </span>
-              )}
-              {movie.releaseDate && (
-                <span className="flex items-center">
-                  <Calendar className="w-3.5 h-3.5 mr-1 text-dark-400" />
-                  {new Date(movie.releaseDate).toLocaleDateString(undefined, {
-                    month: 'short',
-                    day: 'numeric',
-                  })}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <Link
-            to={`/movies/${movie._id}`}
-            className="w-full mt-2 py-2.5 px-3 rounded-xl text-center text-xs font-semibold text-white bg-primary-600 hover:bg-primary-500 shadow-md shadow-primary-950/40 transition-all flex items-center justify-center space-x-1.5"
-          >
-            <span>Book Tickets</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-      </motion.div>
-    );
-  };
-
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden py-24 sm:py-32 bg-radial-gradient">
-        {/* Background glow effects */}
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary-600/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-1/2 left-1/4 w-80 h-80 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-[#f7f6f2] text-[#252824]">
+      {/* 1. StayBnb Signature Split Hero Section */}
+      <section className="relative min-h-[580px] bg-[#e9e8df] overflow-hidden border-b border-[#e5e3dc]">
+        {/* Right background image with soft radial fade */}
+        <div
+          className="absolute inset-0 left-0 md:left-[38%] opacity-35 md:opacity-100 bg-cover bg-center pointer-events-none transition-opacity duration-700"
+          style={{
+            backgroundImage: `linear-gradient(90deg, #e9e8df 0%, rgba(233,232,223,0.4) 40%, rgba(233,232,223,0) 100%), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1800&q=85')`,
+          }}
+        />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-16 pb-20 md:pt-20 md:pb-24">
+          <div className="max-w-xl">
+            {/* Eyebrow rule */}
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="eyebrow mb-4"
+            >
+              <span className="eyebrow-line"></span>
+              <span>A different kind of cinema</span>
+            </motion.div>
+
+            {/* Editorial Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="font-display text-[46px] sm:text-[64px] md:text-[76px] font-semibold text-[#252824] leading-[1.03] tracking-[-0.045em] mb-5"
+            >
+              Somewhere<br />
+              new.<br />
+              <em className="font-serif italic font-normal text-[#5d7159] tracking-[-0.03em]">
+                Somehow
+              </em><br />
+              yours.
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-[15px] sm:text-[16px] text-[#62665e] leading-[1.7] max-w-[420px] mb-8 font-normal"
+            >
+              Thoughtful screenings for slow evenings, grand adventures, and stories worth keeping.
+            </motion.p>
+          </div>
+
+          {/* Floating Search Panel (StayBnb Style) */}
+          <motion.form
+            onSubmit={handleSearch}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-300 text-xs sm:text-sm font-medium mb-6"
-          >
-            <Sparkles className="w-4 h-4 text-primary-400" />
-            <span>The Ultimate Cinematic Experience</span>
-          </motion.div>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.1 }}
-            className="text-4xl sm:text-6xl md:text-7xl font-extrabold tracking-tight text-white mb-6"
-          >
-            Book Your Next <br />
-            <span className="bg-gradient-to-r from-primary-400 via-purple-300 to-indigo-400 bg-clip-text text-transparent">
-              Movie Experience
-            </span>
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="max-w-2xl mx-auto text-base sm:text-lg text-dark-300 mb-10 leading-relaxed"
-          >
-            Select from the latest blockbuster releases, choose your preferred luxury seats with live hold locks, and book seamlessly with digital QR entry.
-          </motion.p>
-
-          {/* Quick Search on Hero */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="max-w-xl mx-auto"
+            className="search-panel max-w-3xl flex-col sm:flex-row gap-2 sm:gap-0 mt-4"
           >
-            <SearchBar
-              placeholder="Search movies by title, genre, actor..."
-              onSearch={handleSearchSubmit}
-              className="shadow-2xl shadow-primary-950/60"
-            />
-          </motion.div>
+            <div className="search-field w-full sm:w-auto flex-1">
+              <span>Where to?</span>
+              <input
+                type="text"
+                placeholder="Title, theatre or genre"
+                value={searchTitle}
+                onChange={(e) => setSearchTitle(e.target.value)}
+              />
+            </div>
+
+            <div className="search-field w-full sm:w-auto sm:min-w-[170px]">
+              <span>The Format</span>
+              <select
+                value={selectedFormat}
+                onChange={(e) => setSelectedFormat(e.target.value)}
+              >
+                <option value="">Any format</option>
+                <option value="IMAX">IMAX 3D</option>
+                <option value="4DX">4DX Experience</option>
+                <option value="3D">Digital 3D</option>
+                <option value="2D">Standard 2D</option>
+              </select>
+            </div>
+
+            <div className="search-field w-full sm:w-auto sm:min-w-[170px]">
+              <span>Price / Ticket</span>
+              <input
+                type="text"
+                placeholder="Up to ₹500"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="search-submit-btn w-full sm:w-[48px] h-[48px] mt-2 sm:mt-0"
+              aria-label="Search movies"
+            >
+              <Search className="w-5 h-5 text-white" />
+            </button>
+          </motion.form>
         </div>
       </section>
 
-      {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-16">
-        {/* Now Showing Section */}
-        <section>
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                  Now Showing
-                </h2>
+      {/* 2. The CineBook Edit — Curated Movie Grid */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-9 pb-2 border-b border-[#e5e3dc]">
+          <div>
+            <div className="eyebrow mb-2">
+              <span className="eyebrow-line"></span>
+              <span>The CineBook Edit</span>
+            </div>
+            <h2 className="font-display text-[32px] sm:text-[40px] font-semibold text-[#252824] tracking-[-0.04em]">
+              Good movies, good energy.
+            </h2>
+          </div>
+          <p className="text-[13px] text-[#777a72] mt-2 sm:mt-0">
+            Showing {nowShowing.length} curated releases
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="py-20 flex justify-center">
+            <LoadingSpinner size="lg" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+            {nowShowing.map((movie) => (
+              <motion.article
+                key={movie._id}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.2 }}
+                className="group flex flex-col"
+              >
+                <Link to={`/movies/${movie._id}`} className="block">
+                  <div className="relative aspect-[1.28] w-full overflow-hidden rounded-md bg-[#e7e5df] shadow-card">
+                    <img
+                      src={
+                        movie.posterUrl ||
+                        'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=800&q=80'
+                      }
+                      alt={movie.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
+
+                    {/* Format / Genre badge */}
+                    <span className="absolute top-3.5 left-3.5 px-2.5 py-1 bg-white/95 backdrop-blur-sm rounded-sm text-[10px] font-bold tracking-widest uppercase text-[#252824] shadow-sm">
+                      {movie.format || 'IMAX'} ↗
+                    </span>
+
+                    {/* Floating circle arrow icon */}
+                    <div className="absolute bottom-3.5 right-3.5 w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-md text-[#252824] group-hover:bg-[#cf785b] group-hover:text-white transition-colors">
+                      <ArrowUpRight className="w-4 h-4" />
+                    </div>
+                  </div>
+
+                  <div className="pt-3.5">
+                    <div className="flex items-baseline justify-between gap-2">
+                      <h3 className="font-display text-[17px] font-bold text-[#252824] tracking-tight group-hover:text-[#cf785b] transition-colors">
+                        {movie.title}
+                      </h3>
+                      <span className="text-[12px] font-semibold text-[#5d7159] whitespace-nowrap">
+                        ★ {movie.rating || 'UA'}
+                      </span>
+                    </div>
+
+                    <p className="text-[13px] text-[#777a72] mt-0.5 mb-1.5 truncate">
+                      {Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre} · {movie.duration}m · {movie.language}
+                    </p>
+
+                    <p className="text-[14px] text-[#252824]">
+                      <strong className="font-bold text-[15px]">From ₹250.00</strong>{' '}
+                      <span className="text-[12px] text-[#777a72]">/ seat</span>
+                    </p>
+                  </div>
+                </Link>
+              </motion.article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* 3. Host / Membership Banner (StayBnb Signature) */}
+      <section className="bg-[#344638] text-[#f7f6f2] py-16 md:py-20 border-y border-[#2a382d]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div className="max-w-xl">
+              <div className="eyebrow text-[#cbdbcb] mb-3">
+                <span className="h-[1px] w-6 bg-[#cf785b]"></span>
+                <span className="text-[#cbdbcb]">Have a passion for cinema?</span>
               </div>
-              <p className="text-sm text-dark-400 mt-1">
-                Catch the latest movies in theatres today
+              <h2 className="font-display text-[36px] sm:text-[46px] font-semibold leading-[1.08] tracking-[-0.04em] mb-4">
+                Let someone else<br />
+                <em className="font-serif italic font-normal text-[#e5eae4]">fall for it.</em>
+              </h2>
+              <p className="text-[14px] sm:text-[15px] leading-[1.8] text-[#d0d6cd] max-w-md">
+                Share the magic of the silver screen with people who watch for the feeling, not just the spectacle. Your CineBook account works for reserve seating, premier festivals, and usher admission.
               </p>
             </div>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <Link
+                to="/movies"
+                className="px-6 py-3.5 rounded-full bg-white text-[#252824] hover:bg-[#f7f6f2] font-semibold text-[13px] tracking-tight shadow-md transition-all flex items-center gap-2"
+              >
+                <span>Browse All Showtimes</span>
+                <span>↗</span>
+              </Link>
+              <Link
+                to="/register"
+                className="px-6 py-3.5 rounded-full border border-[#cbdbcb]/40 text-[#f7f6f2] hover:bg-[#28362b] font-semibold text-[13px] tracking-tight transition-all"
+              >
+                Create Account
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Coming Soon / Stories Ahead */}
+      {comingSoon.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20">
+          <div className="flex items-end justify-between mb-8 pb-2 border-b border-[#e5e3dc]">
+            <div>
+              <div className="eyebrow mb-2">
+                <span className="eyebrow-line"></span>
+                <span>Upcoming Premieres</span>
+              </div>
+              <h2 className="font-display text-[28px] sm:text-[34px] font-semibold text-[#252824] tracking-[-0.04em]">
+                On the horizon.
+              </h2>
+            </div>
             <Link
-              to="/movies"
-              className="flex items-center text-sm font-semibold text-primary-400 hover:text-primary-300 transition-colors group"
+              to="/movies?status=coming_soon"
+              className="text-[13px] font-semibold text-[#252824] hover:text-[#cf785b] border-b border-[#252824] pb-0.5 transition-colors"
             >
-              <span>View All</span>
-              <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
+              View calendar ↗
             </Link>
           </div>
 
-          {loading ? (
-            <LoadingSpinner size="lg" text="Loading now showing..." />
-          ) : error ? (
-            <div className="p-8 text-center text-rose-400 bg-rose-500/10 rounded-2xl border border-rose-500/20">
-              {error}
-            </div>
-          ) : nowShowing.length === 0 ? (
-            <div className="text-center py-12 bg-dark-900/50 rounded-2xl border border-dark-800">
-              <Film className="w-12 h-12 text-dark-500 mx-auto mb-3" />
-              <p className="text-dark-300">No movies currently showing.</p>
-            </div>
-          ) : (
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6"
-            >
-              {nowShowing.map((movie) => (
-                <MovieCard key={movie._id} movie={movie} />
-              ))}
-            </motion.div>
-          )}
-        </section>
-
-        {/* Coming Soon Section */}
-        {comingSoon.length > 0 && (
-          <section className="pt-8 border-t border-dark-800/80">
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                  Coming Soon
-                </h2>
-                <p className="text-sm text-dark-400 mt-1">
-                  Exciting blockbusters releasing soon to theatres near you
-                </p>
-              </div>
-              <Link
-                to="/movies?status=coming_soon"
-                className="flex items-center text-sm font-semibold text-primary-400 hover:text-primary-300 transition-colors group"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {comingSoon.map((movie) => (
+              <div
+                key={movie._id}
+                className="flex items-center gap-4 p-4 rounded-lg bg-white border border-[#e5e3dc] shadow-card hover:border-[#cf785b] transition-all"
               >
-                <span>Explore Upcoming</span>
-                <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6"
-            >
-              {comingSoon.map((movie) => (
-                <MovieCard key={movie._id} movie={movie} />
-              ))}
-            </motion.div>
-          </section>
-        )}
-      </div>
+                <img
+                  src={
+                    movie.posterUrl ||
+                    'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=300&q=80'
+                  }
+                  alt={movie.title}
+                  className="w-16 h-20 object-cover rounded"
+                />
+                <div className="flex-1 min-w-0">
+                  <span className="text-[10px] uppercase font-bold text-[#cf785b] tracking-wider">
+                    Coming Soon
+                  </span>
+                  <h4 className="font-display text-[15px] font-bold text-[#252824] truncate">
+                    {movie.title}
+                  </h4>
+                  <p className="text-[12px] text-[#777a72] truncate">
+                    {Array.isArray(movie.genre) ? movie.genre.join(', ') : movie.genre}
+                  </p>
+                  <p className="text-[12px] text-[#5d7159] font-medium mt-1">
+                    {movie.duration} mins · {movie.format}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };

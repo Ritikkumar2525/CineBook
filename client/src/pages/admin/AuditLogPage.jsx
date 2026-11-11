@@ -127,20 +127,20 @@ export const AuditLogPage = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="pb-4 border-b border-dark-800">
-        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center">
-          <ClipboardList className="w-7 h-7 text-primary-400 mr-2.5" />
+      <div className="pb-4 border-b border-[#e5e3dc]">
+        <h1 className="text-2xl sm:text-3xl font-black text-[#252824] tracking-tight flex items-center">
+          <ClipboardList className="w-7 h-7 text-[#cf785b] mr-2.5" />
           Security Audit Logs
         </h1>
-        <p className="text-xs sm:text-sm text-dark-400 mt-0.5">
+        <p className="text-xs sm:text-sm text-[#777a72] mt-0.5">
           Immutable history of admin configurations, seat holds, and ticket admission events
         </p>
       </div>
 
       {/* Filter and Search */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-dark-900 border border-dark-800 p-4 rounded-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white border border-[#e5e3dc] p-4 rounded-2xl">
         <div className="sm:col-span-2 relative">
-          <Search className="absolute left-3.5 top-3 w-4 h-4 text-dark-400 pointer-events-none" />
+          <Search className="absolute left-3.5 top-3 w-4 h-4 text-[#777a72] pointer-events-none" />
           <input
             type="text"
             value={search}
@@ -149,7 +149,7 @@ export const AuditLogPage = () => {
               setCurrentPage(1);
             }}
             placeholder="Search by user, action keyword, or details..."
-            className="w-full pl-10 pr-4 py-2 bg-dark-800 border border-dark-700 rounded-xl text-xs sm:text-sm text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+            className="w-full pl-10 pr-4 py-2 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-xs sm:text-sm text-[#252824] placeholder-dark-500 focus:outline-none focus:border-primary-500"
           />
         </div>
 
@@ -160,7 +160,7 @@ export const AuditLogPage = () => {
               setActionFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full px-3 py-2 bg-dark-800 border border-dark-700 rounded-xl text-xs sm:text-sm text-white focus:outline-none cursor-pointer"
+            className="w-full px-3 py-2 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-xs sm:text-sm text-[#252824] focus:outline-none cursor-pointer"
           >
             <option value="all">All Action Types</option>
             <option value="CREATE_SHOWTIME">Showtime Scheduling</option>
@@ -182,10 +182,10 @@ export const AuditLogPage = () => {
           description="No administrative activities match your current search query."
         />
       ) : (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-white border border-[#e5e3dc] rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-dark-950/80 border-b border-dark-800 text-dark-400 uppercase text-[10px] font-bold tracking-wider">
+              <thead className="bg-[#f7f6f2] border-b border-[#e5e3dc] text-[#777a72] uppercase text-[10px] font-bold tracking-wider">
                 <tr>
                   <th className="py-3.5 px-4">Timestamp</th>
                   <th className="py-3.5 px-4">Operator</th>
@@ -196,8 +196,8 @@ export const AuditLogPage = () => {
               </thead>
               <tbody className="divide-y divide-dark-800/60">
                 {displayedLogs.map((log) => (
-                  <tr key={log._id} className="hover:bg-dark-800/40 transition-colors">
-                    <td className="py-3.5 px-4 text-dark-400 whitespace-nowrap text-xs">
+                  <tr key={log._id} className="hover:bg-[#f7f6f2]/40 transition-colors">
+                    <td className="py-3.5 px-4 text-[#777a72] whitespace-nowrap text-xs">
                       {new Date(log.createdAt).toLocaleString(undefined, {
                         month: 'short',
                         day: 'numeric',
@@ -208,10 +208,10 @@ export const AuditLogPage = () => {
                     </td>
 
                     <td className="py-3.5 px-4">
-                      <p className="font-bold text-white">
+                      <p className="font-bold text-[#252824]">
                         {log.user?.name || log.userName || 'System'}
                       </p>
-                      <p className="text-[11px] text-dark-400">
+                      <p className="text-[11px] text-[#777a72]">
                         {log.user?.email || log.userEmail || ''}
                       </p>
                     </td>
@@ -222,11 +222,11 @@ export const AuditLogPage = () => {
                       </Badge>
                     </td>
 
-                    <td className="py-3.5 px-4 font-mono text-dark-300 text-xs">
+                    <td className="py-3.5 px-4 font-mono text-[#555850] text-xs">
                       {log.entity || 'General'}
                     </td>
 
-                    <td className="py-3.5 px-4 text-dark-300 max-w-xs sm:max-w-md">
+                    <td className="py-3.5 px-4 text-[#555850] max-w-xs sm:max-w-md">
                       <p className="line-clamp-2 leading-relaxed">{log.details || 'N/A'}</p>
                     </td>
                   </tr>

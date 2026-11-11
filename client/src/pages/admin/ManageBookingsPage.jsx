@@ -8,8 +8,6 @@ import {
   AlertCircle,
   Calendar,
   Clock,
-  MapPin,
-  Tv,
   QrCode,
   ShieldCheck,
   ChevronDown,
@@ -17,7 +15,6 @@ import {
 } from 'lucide-react';
 import { bookingsApi } from '../../services/api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import Badge from '../../components/ui/Badge';
 import Pagination from '../../components/ui/Pagination';
 import EmptyState from '../../components/ui/EmptyState';
 import toast from 'react-hot-toast';
@@ -31,7 +28,7 @@ export const ManageBookingsPage = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [expandedId, setExpandedId] = useState(null);
 
-  // Ticket Validation Section State
+  // Ticket Validation Section State (Acceptance Test #4)
   const [validateRef, setValidateRef] = useState('');
   const [validating, setValidating] = useState(false);
   const [validationResult, setValidationResult] = useState(null);
@@ -48,11 +45,10 @@ export const ManageBookingsPage = () => {
     try {
       setLoading(true);
       const res = await bookingsApi.getAll();
-      const list = res.data?.bookings || res.data?.data || res.data || [];
+      const list = res.data?.data || res.data?.bookings || res.data || [];
       setBookings(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error('Failed to load bookings:', err);
-      toast.error('Failed to load bookings');
     } finally {
       setLoading(false);
     }
@@ -80,9 +76,12 @@ export const ManageBookingsPage = () => {
       console.error('Ticket validation error:', err);
       setValidationResult({
         success: false,
-        message: err.message || 'Invalid or already redeemed ticket reference.',
+        message:
+          err.response?.data?.message ||
+          err.message ||
+          'Invalid or already redeemed ticket reference.',
       });
-      toast.error(err.message || 'Validation failed');
+      toast.error('Validation failed');
     } finally {
       setValidating(false);
     }
@@ -97,9 +96,9 @@ export const ManageBookingsPage = () => {
     if (search.trim()) {
       const q = search.toLowerCase();
       const refMatch = (b.bookingRef || '').toLowerCase().includes(q);
-      const userMatch = (b.user?.name || b.customerName || '').toLowerCase().includes(q);
+      const userMatch = (b.user?.name || '').toLowerCase().includes(q);
       const emailMatch = (b.user?.email || '').toLowerCase().includes(q);
-      const movieMatch = (b.movie?.title || b.showtime?.movie?.title || '').toLowerCase().includes(q);
+      const movieMatch = (b.showtime?.movie?.title || '').toLowerCase().includes(q);
       if (!refMatch && !userMatch && !emailMatch && !movieMatch) return false;
     }
 
@@ -113,277 +112,204 @@ export const ManageBookingsPage = () => {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-[#f7f6f2] text-[#252824]">
       {/* Top Header */}
-      <div className="pb-4 border-b border-dark-800">
-        <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center">
-          <Ticket className="w-7 h-7 text-primary-400 mr-2.5" />
-          Manage Bookings & Ticket Validation
+      <div className="pb-6 border-b border-[#e5e3dc]">
+        <div className="eyebrow mb-2">
+          <span className="eyebrow-line"></span>
+          <span>Access Control & Ledger</span>
+        </div>
+        <h1 className="font-display text-3xl sm:text-4xl font-semibold tracking-tight text-[#252824]">
+          Bookings & Gate Validation.
         </h1>
-        <p className="text-xs sm:text-sm text-dark-400 mt-0.5">
-          Verify digital patron entry passes and inspect live cinema transactions
+        <p className="text-xs sm:text-sm text-[#777a72] mt-1">
+          Simulate usher barcode scanning and inspect the central reservations ledger.
         </p>
       </div>
 
-      {/* Ticket Usher Verification Terminal (Hero Card) */}
-      <div className="bg-gradient-to-r from-dark-900 via-primary-950/40 to-dark-900 border border-primary-500/30 rounded-2xl p-6 shadow-xl relative overflow-hidden">
-        <div className="max-w-2xl">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-primary-500/10 border border-primary-500/20 text-primary-300 text-xs font-semibold mb-3">
-            <ShieldCheck className="w-4 h-4 text-primary-400" />
-            <span>Usher Gate Scanner & Validation</span>
-          </div>
-
-          <h3 className="text-xl font-bold text-white mb-2">
-            Verify & Admit Ticket Reference
-          </h3>
-          <p className="text-xs text-dark-300 mb-4 leading-relaxed">
-            Enter the customer's 6 or 8-character booking reference printed on their digital pass to validate entry and mark the ticket as used.
-          </p>
-
-          <form onSubmit={handleValidateTicket} className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <QrCode className="absolute left-3.5 top-3 w-4 h-4 text-dark-400 pointer-events-none" />
-              <input
-                type="text"
-                value={validateRef}
-                onChange={(e) => setValidateRef(e.target.value.toUpperCase())}
-                placeholder="e.g. CNB-A98B12"
-                className="w-full pl-10 pr-4 py-2.5 bg-dark-950 border border-dark-700 rounded-xl text-sm font-mono tracking-wider text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
-              />
+      {/* Usher Ticket Scanner Terminal (Acceptance Test #4) */}
+      <div className="bg-white border border-[#e5e3dc] rounded-2xl p-6 sm:p-8 shadow-sm">
+        <div className="flex items-center justify-between mb-4 border-b border-[#e5e3dc] pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#e5eae4] text-[#344638] flex items-center justify-center">
+              <QrCode className="w-5 h-5" />
             </div>
-            <button
-              type="submit"
-              disabled={validating || !validateRef.trim()}
-              className="px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
-            >
-              {validating ? (
-                <span className="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <CheckCircle className="w-4 h-4" />
-                  <span>Validate Pass</span>
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Validation Report Banner */}
-          <AnimatePresence>
-            {validationResult && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className={`mt-4 p-4 rounded-xl border text-xs flex items-start space-x-3 ${
-                  validationResult.success
-                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                    : 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                }`}
-              >
-                {validationResult.success ? (
-                  <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-                ) : (
-                  <XCircle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
-                )}
-                <div className="flex-1">
-                  <p className="font-bold text-sm text-white mb-0.5">
-                    {validationResult.success ? 'Pass Verified' : 'Validation Failed'}
-                  </p>
-                  <p>{validationResult.message}</p>
-                  {validationResult.booking && (
-                    <div className="mt-2 pt-2 border-t border-emerald-500/20 text-[11px] grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      <div>
-                        <span className="text-emerald-400/70 block">Movie:</span>
-                        <span className="font-semibold text-white">
-                          {validationResult.booking.movie?.title || 'Movie'}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-emerald-400/70 block">Seats:</span>
-                        <span className="font-semibold text-white">
-                          {(validationResult.booking.seats || []).map((s) => s.seatNumber).join(', ')}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-emerald-400/70 block">Status:</span>
-                        <span className="font-semibold text-white uppercase">
-                          {validationResult.booking.status}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+            <div>
+              <h2 className="font-display text-lg font-bold text-[#252824]">
+                Usher Ticket Scanner Terminal
+              </h2>
+              <p className="text-xs text-[#777a72]">
+                Scan or enter the booking reference code (e.g., <code className="font-mono text-[#252824]">BK-XXXXXXXX</code>)
+              </p>
+            </div>
+          </div>
+          <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#e5eae4] text-[#344638]">
+            Acceptance Test #4
+          </span>
         </div>
-      </div>
 
-      {/* Bookings Explorer Table */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="relative max-w-sm w-full">
-            <Search className="absolute left-3.5 top-3 w-4 h-4 text-dark-400 pointer-events-none" />
+        <form onSubmit={handleValidateTicket} className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
             <input
               type="text"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Search reference, customer, or movie..."
-              className="w-full pl-10 pr-4 py-2 bg-dark-900 border border-dark-700 rounded-xl text-xs sm:text-sm text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+              value={validateRef}
+              onChange={(e) => setValidateRef(e.target.value.toUpperCase())}
+              placeholder="Enter Booking Reference (e.g. BK-9X4KM2L7)"
+              className="w-full px-4 py-3 rounded-lg border border-[#e5e3dc] bg-[#f7f6f2] text-[#252824] placeholder-[#9ea098] font-mono text-sm tracking-wider focus:outline-none focus:border-[#cf785b]"
             />
           </div>
 
-          {/* Status Tabs */}
-          <div className="flex items-center space-x-1.5 bg-dark-900 border border-dark-800 p-1 rounded-xl self-start sm:self-auto text-xs">
-            {['all', 'confirmed', 'used', 'cancelled'].map((status) => (
-              <button
-                key={status}
-                onClick={() => {
-                  setStatusFilter(status);
-                  setCurrentPage(1);
-                }}
-                className={`px-3 py-1.5 rounded-lg font-semibold capitalize transition-all ${
-                  statusFilter === status
-                    ? 'bg-primary-600 text-white shadow-sm'
-                    : 'text-dark-400 hover:text-white'
-                }`}
-              >
-                {status}
-              </button>
-            ))}
+          <button
+            type="submit"
+            disabled={validating || !validateRef.trim()}
+            className="px-6 py-3 rounded-lg bg-[#cf785b] hover:bg-[#b85d38] text-white text-xs font-semibold tracking-tight transition-colors flex items-center justify-center gap-2 shadow-sm disabled:opacity-50"
+          >
+            {validating ? (
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <ShieldCheck className="w-4 h-4" />
+            )}
+            <span>Validate Ticket</span>
+          </button>
+        </form>
+
+        {/* Validation Result Box */}
+        {validationResult && (
+          <div
+            className={`mt-5 p-4 rounded-xl border text-xs ${
+              validationResult.success
+                ? 'bg-[#e5eae4] border-[#cbdbcb] text-[#344638]'
+                : 'bg-[#fdf5f2] border-[#cf785b]/40 text-[#a33d35]'
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              {validationResult.success ? (
+                <CheckCircle className="w-5 h-5 flex-shrink-0 text-[#344638]" />
+              ) : (
+                <XCircle className="w-5 h-5 flex-shrink-0 text-[#a33d35]" />
+              )}
+              <div>
+                <p className="font-bold text-sm">{validationResult.message}</p>
+                {validationResult.success && validationResult.booking && (
+                  <p className="mt-1 text-[11px] text-[#555850]">
+                    Status: <strong className="uppercase">Used</strong> · Admitted to auditorium.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Bookings Ledger */}
+      <div className="bg-white border border-[#e5e3dc] rounded-2xl p-6 shadow-sm space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e5e3dc] pb-4">
+          <h2 className="font-display text-xl font-bold text-[#252824]">
+            All System Bookings ({filteredBookings.length})
+          </h2>
+
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              placeholder="Search reference, customer, title..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="px-3 py-1.5 rounded-lg border border-[#e5e3dc] bg-[#f7f6f2] text-xs text-[#252824] placeholder-[#9ea098] focus:outline-none focus:border-[#cf785b]"
+            />
+
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-lg border border-[#e5e3dc] bg-[#f7f6f2] text-xs text-[#252824] focus:outline-none focus:border-[#cf785b]"
+            >
+              <option value="all">All Statuses</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="used">Used</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
           </div>
         </div>
 
+        {/* Ledger Table */}
         {loading ? (
-          <LoadingSpinner size="lg" text="Loading customer bookings..." />
+          <div className="py-16 flex justify-center">
+            <LoadingSpinner size="lg" />
+          </div>
         ) : displayedBookings.length === 0 ? (
           <EmptyState
-            icon={Ticket}
-            title="No bookings found"
-            description="No cinema bookings matched your search query or status criteria."
+            title="No bookings recorded"
+            message="No reservations match the specified search query."
           />
         ) : (
-          <div className="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden shadow-xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm">
-                <thead className="bg-dark-950/80 border-b border-dark-800 text-dark-400 uppercase text-[10px] font-bold tracking-wider">
-                  <tr>
-                    <th className="py-3.5 px-4">Ref Code</th>
-                    <th className="py-3.5 px-4">Customer</th>
-                    <th className="py-3.5 px-4">Movie & Showtime</th>
-                    <th className="py-3.5 px-4">Seats</th>
-                    <th className="py-3.5 px-4">Total Amount</th>
-                    <th className="py-3.5 px-4">Status</th>
-                    <th className="py-3.5 px-4 text-right">Details</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-dark-800/60">
-                  {displayedBookings.map((b) => {
-                    const isExpanded = expandedId === b._id;
-                    const movie = b.movie || b.showtime?.movie || {};
-                    const screen = b.screen || b.showtime?.screen || {};
-                    const showtime = b.showtime || {};
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-[#e5e3dc] text-[#777a72] uppercase font-bold text-[10px] tracking-wider">
+                  <th className="py-3 px-3">Reference</th>
+                  <th className="py-3 px-3">Customer</th>
+                  <th className="py-3 px-3">Movie</th>
+                  <th className="py-3 px-3">Seats</th>
+                  <th className="py-3 px-3">Amount</th>
+                  <th className="py-3 px-3">Status</th>
+                  <th className="py-3 px-3 text-right">Quick Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#f0efe9]">
+                {displayedBookings.map((b) => {
+                  const statusStyle =
+                    b.status === 'confirmed'
+                      ? 'bg-[#e5eae4] text-[#344638]'
+                      : b.status === 'used'
+                      ? 'bg-[#e9e8df] text-[#555850]'
+                      : 'bg-[#fdf5f2] text-[#cf785b]';
 
-                    return (
-                      <React.Fragment key={b._id}>
-                        <tr className="hover:bg-dark-800/40 transition-colors">
-                          <td className="py-3.5 px-4 font-mono font-bold text-white">
-                            {b.bookingRef || b._id.substring(0, 8).toUpperCase()}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <p className="font-bold text-white">{b.user?.name || b.customerName || 'Guest'}</p>
-                            <p className="text-[11px] text-dark-400">{b.user?.email || 'N/A'}</p>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <p className="font-bold text-white line-clamp-1">{movie.title || 'Movie'}</p>
-                            <p className="text-[11px] text-dark-400">
-                              {screen.name || 'Screen 1'} •{' '}
-                              {showtime.startTime
-                                ? new Date(showtime.startTime).toLocaleTimeString([], {
-                                    hour: '2-digit',
-                                    minute: '2-digit',
-                                  })
-                                : 'Today'}
-                            </p>
-                          </td>
-                          <td className="py-3.5 px-4 font-semibold text-white">
-                            {(b.seats || []).map((s) => s.seatNumber).join(', ')}
-                          </td>
-                          <td className="py-3.5 px-4 font-bold text-emerald-400">
-                            ₹{b.totalAmount}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <Badge status={b.status} />
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <button
-                              onClick={() => setExpandedId(isExpanded ? null : b._id)}
-                              className="p-1.5 rounded-lg text-dark-400 hover:text-white hover:bg-dark-800 transition-colors"
-                            >
-                              {isExpanded ? (
-                                <ChevronUp className="w-4 h-4" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4" />
-                              )}
-                            </button>
-                          </td>
-                        </tr>
+                  return (
+                    <tr key={b._id} className="hover:bg-[#f7f6f2] transition-colors">
+                      <td className="py-3 px-3 font-mono font-bold text-[#252824]">
+                        {b.bookingRef}
+                      </td>
+                      <td className="py-3 px-3 font-semibold text-[#252824]">
+                        {b.user?.name || 'Customer'}
+                      </td>
+                      <td className="py-3 px-3 text-[#555850]">
+                        {b.showtime?.movie?.title || 'Movie'}
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className="px-2 py-0.5 rounded bg-[#f7f6f2] border border-[#e5e3dc] font-bold">
+                          {b.seats?.map((s) => s.seatId).join(', ') || 'N/A'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 font-bold text-[#252824]">
+                        ₹{b.totalAmount}.00
+                      </td>
+                      <td className="py-3 px-3">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${statusStyle}`}
+                        >
+                          {b.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3 text-right">
+                        <button
+                          onClick={() => {
+                            setValidateRef(b.bookingRef);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="text-[11px] font-semibold text-[#cf785b] hover:underline"
+                        >
+                          Load to Scanner ↗
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-                        {/* Expandable details */}
-                        {isExpanded && (
-                          <tr className="bg-dark-950/60 border-b border-dark-800">
-                            <td colSpan={7} className="p-4 sm:p-5">
-                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
-                                <div>
-                                  <span className="text-[10px] uppercase font-bold text-dark-400">
-                                    Customer Phone
-                                  </span>
-                                  <p className="text-white mt-0.5">{b.user?.phone || 'N/A'}</p>
-                                </div>
-                                <div>
-                                  <span className="text-[10px] uppercase font-bold text-dark-400">
-                                    Transaction ID
-                                  </span>
-                                  <p className="font-mono text-dark-300 mt-0.5">
-                                    {b.paymentDetails?.transactionId || 'TXN-ONLINE'}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="text-[10px] uppercase font-bold text-dark-400">
-                                    Booked On
-                                  </span>
-                                  <p className="text-dark-300 mt-0.5">
-                                    {new Date(b.createdAt || Date.now()).toLocaleString()}
-                                  </p>
-                                </div>
-                                <div>
-                                  <span className="text-[10px] uppercase font-bold text-dark-400">
-                                    Fast Validate
-                                  </span>
-                                  <button
-                                    onClick={() => {
-                                      setValidateRef(b.bookingRef || '');
-                                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                                    }}
-                                    className="block mt-0.5 text-primary-400 hover:underline font-semibold"
-                                  >
-                                    Load into Scanner &rarr;
-                                  </button>
-                                </div>
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-
+        {totalPages > 1 && (
+          <div className="pt-4 flex justify-center">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

@@ -215,20 +215,20 @@ export const ManageShowtimesPage = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-dark-800 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#e5e3dc] gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center">
-            <CalendarClock className="w-7 h-7 text-primary-400 mr-2.5" />
+          <h1 className="text-2xl sm:text-3xl font-black text-[#252824] tracking-tight flex items-center">
+            <CalendarClock className="w-7 h-7 text-[#cf785b] mr-2.5" />
             Manage Showtimes
           </h1>
-          <p className="text-xs sm:text-sm text-dark-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-[#777a72] mt-0.5">
             Schedule movie showtimes across theatre screens with conflict checking
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="self-start sm:self-auto flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-950/40 transition-all hover:scale-105 active:scale-95"
+          className="self-start sm:self-auto flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold text-[#252824] bg-[#252824] hover:bg-[#344638] text-white shadow-lg shadow-primary-950/40 transition-all hover:scale-105 active:scale-95"
         >
           <Plus className="w-4 h-4" />
           <span>Schedule Showtime</span>
@@ -236,9 +236,9 @@ export const ManageShowtimesPage = () => {
       </div>
 
       {/* Filter Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-dark-900 border border-dark-800 p-4 rounded-2xl">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white border border-[#e5e3dc] p-4 rounded-2xl">
         <div>
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-dark-400 mb-1">
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-[#777a72] mb-1">
             Filter by Movie
           </label>
           <select
@@ -247,7 +247,7 @@ export const ManageShowtimesPage = () => {
               setFilterMovie(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full px-3 py-2 bg-dark-800 border border-dark-700 rounded-xl text-xs text-white focus:outline-none"
+            className="w-full px-3 py-2 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-xs text-[#252824] focus:outline-none"
           >
             <option value="all">All Movies</option>
             {movies.map((m) => (
@@ -259,7 +259,7 @@ export const ManageShowtimesPage = () => {
         </div>
 
         <div>
-          <label className="block text-[10px] font-bold uppercase tracking-wider text-dark-400 mb-1">
+          <label className="block text-[10px] font-bold uppercase tracking-wider text-[#777a72] mb-1">
             Filter by Date
           </label>
           <input
@@ -269,7 +269,7 @@ export const ManageShowtimesPage = () => {
               setFilterDate(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full px-3 py-2 bg-dark-800 border border-dark-700 rounded-xl text-xs text-white focus:outline-none"
+            className="w-full px-3 py-2 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-xs text-[#252824] focus:outline-none"
           />
         </div>
 
@@ -280,7 +280,7 @@ export const ManageShowtimesPage = () => {
               setFilterDate('');
               setCurrentPage(1);
             }}
-            className="w-full py-2 px-3 rounded-xl text-xs font-semibold bg-dark-800 hover:bg-dark-700 text-dark-300 hover:text-white transition-colors border border-dark-700"
+            className="w-full py-2 px-3 rounded-xl text-xs font-semibold bg-[#f7f6f2] hover:bg-[#e9e8df] text-[#555850] hover:text-[#252824] transition-colors border border-[#e5e3dc]"
           >
             Clear Filters
           </button>
@@ -299,10 +299,10 @@ export const ManageShowtimesPage = () => {
           onAction={handleOpenAdd}
         />
       ) : (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-white border border-[#e5e3dc] rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-dark-950/80 border-b border-dark-800 text-dark-400 uppercase text-[10px] font-bold tracking-wider">
+              <thead className="bg-[#f7f6f2] border-b border-[#e5e3dc] text-[#777a72] uppercase text-[10px] font-bold tracking-wider">
                 <tr>
                   <th className="py-3.5 px-4">Movie</th>
                   <th className="py-3.5 px-4">Theatre & Screen</th>
@@ -324,25 +324,25 @@ export const ManageShowtimesPage = () => {
                       key={st._id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="hover:bg-dark-800/40 transition-colors"
+                      className="hover:bg-[#f7f6f2]/40 transition-colors"
                     >
                       <td className="py-3.5 px-4">
-                        <p className="font-bold text-white text-sm line-clamp-1">
+                        <p className="font-bold text-[#252824] text-sm line-clamp-1">
                           {movie.title || 'Movie'}
                         </p>
-                        <span className="text-[11px] text-primary-400 font-medium">
+                        <span className="text-[11px] text-[#cf785b] font-medium">
                           {movie.format || '2D'} • {movie.duration || 120}m
                         </span>
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <p className="text-white font-semibold">{screen.name || 'Screen 1'}</p>
-                        <p className="text-xs text-dark-400">{theatre.name || 'Main Cinema'}</p>
+                        <p className="text-[#252824] font-semibold">{screen.name || 'Screen 1'}</p>
+                        <p className="text-xs text-[#777a72]">{theatre.name || 'Main Cinema'}</p>
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <div className="flex items-center space-x-1.5 text-white font-medium">
-                          <Calendar className="w-3.5 h-3.5 text-dark-400" />
+                        <div className="flex items-center space-x-1.5 text-[#252824] font-medium">
+                          <Calendar className="w-3.5 h-3.5 text-[#777a72]" />
                           <span>
                             {startTime.toLocaleDateString(undefined, {
                               weekday: 'short',
@@ -351,7 +351,7 @@ export const ManageShowtimesPage = () => {
                             })}
                           </span>
                         </div>
-                        <div className="flex items-center space-x-1.5 text-primary-300 text-xs mt-0.5 font-bold">
+                        <div className="flex items-center space-x-1.5 text-[#344638] text-xs mt-0.5 font-bold">
                           <Clock className="w-3.5 h-3.5" />
                           <span>
                             {startTime.toLocaleTimeString([], {
@@ -404,12 +404,12 @@ export const ManageShowtimesPage = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
           <div>
-            <label className="block text-dark-300 font-semibold mb-1">Select Movie</label>
+            <label className="block text-[#555850] font-semibold mb-1">Select Movie</label>
             <select
               value={formData.movie}
               onChange={(e) => handleMovieOrTimeChange(e.target.value, formData.startTime)}
               required
-              className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+              className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
             >
               <option value="">Select Movie</option>
               {movies.map((m) => (
@@ -421,12 +421,12 @@ export const ManageShowtimesPage = () => {
           </div>
 
           <div>
-            <label className="block text-dark-300 font-semibold mb-1">Select Screen</label>
+            <label className="block text-[#555850] font-semibold mb-1">Select Screen</label>
             <select
               value={formData.screen}
               onChange={(e) => setFormData({ ...formData, screen: e.target.value })}
               required
-              className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+              className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
             >
               <option value="">Select Screen</option>
               {screens.map((sc) => (
@@ -439,24 +439,24 @@ export const ManageShowtimesPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Start Time</label>
+              <label className="block text-[#555850] font-semibold mb-1">Start Time</label>
               <input
                 type="datetime-local"
                 value={formData.startTime}
                 onChange={(e) => handleMovieOrTimeChange(formData.movie, e.target.value)}
                 required
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Calculated End Time</label>
+              <label className="block text-[#555850] font-semibold mb-1">Calculated End Time</label>
               <input
                 type="datetime-local"
                 value={formData.endTime}
                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
                 required
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
           </div>
@@ -471,18 +471,18 @@ export const ManageShowtimesPage = () => {
             </div>
           )}
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-dark-800">
+          <div className="flex justify-end space-x-3 pt-4 border-t border-[#e5e3dc]">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-dark-300 hover:text-white bg-dark-800 hover:bg-dark-700"
+              className="px-4 py-2 rounded-xl text-[#555850] hover:text-[#252824] bg-[#f7f6f2] hover:bg-[#e9e8df]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={formSubmitting}
-              className="px-5 py-2 rounded-xl text-white bg-primary-600 hover:bg-primary-500 font-bold shadow-md shadow-primary-950/40"
+              className="px-5 py-2 rounded-xl text-[#252824] bg-[#252824] hover:bg-[#344638] text-white font-bold shadow-md shadow-primary-950/40"
             >
               {formSubmitting ? 'Scheduling...' : 'Confirm Schedule'}
             </button>

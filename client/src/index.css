@@ -2,51 +2,180 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --paper: #f7f6f2;
+  --ink: #252824;
+  --muted: #777a72;
+  --line: #e5e3dc;
+  --green: #344638;
+  --clay: #cf785b;
+  --serif: Georgia, "Times New Roman", serif;
+}
+
 @layer base {
   body {
-    @apply bg-dark-950 text-slate-100 font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 15px;
+    letter-spacing: -0.01em;
   }
 
-  /* Custom scrollbar */
+  h1, h2, h3, .brand-title {
+    font-family: 'Manrope', system-ui, sans-serif;
+    letter-spacing: -0.045em;
+  }
+
+  h1 em, h2 em {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-style: italic;
+    color: #5d7159;
+    letter-spacing: -0.03em;
+  }
+
+  /* Custom subtle warm scrollbar */
   ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #090d16;
+    background: #f0efe9;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: #d8d6cc;
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #9333ea;
+    background: var(--clay);
   }
 }
 
-/* Glassmorphism helpers */
-.glass-panel {
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Brand mark badge from StayBnb */
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #ffffff;
+  font-family: var(--serif);
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1;
 }
 
-.glass-card {
-  background: rgba(30, 41, 59, 0.5);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+/* StayBnb Pill button */
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 9999px;
+  background: var(--ink);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
 }
 
-/* Screen curve in theater view */
-.screen-curve {
-  position: relative;
-  height: 28px;
+.nav-cta:hover {
+  background: var(--green);
+  color: #ffffff;
+}
+
+/* Eyebrow rule */
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+
+.eyebrow-line {
+  height: 1px;
+  width: 24px;
+  background: var(--clay);
+}
+
+/* Search panel */
+.search-panel {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  box-shadow: 0 15px 40px rgba(37, 40, 36, 0.08);
+}
+
+.search-field {
+  padding: 6px 18px;
+  border-right: 1px solid var(--line);
+  flex: 1;
+  min-width: 0;
+}
+
+.search-field:last-of-type {
+  border-right: none;
+}
+
+.search-field > span {
+  display: block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #777a72;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.search-field input,
+.search-field select {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-family: inherit;
+  padding: 0;
+}
+
+.search-field input::placeholder {
+  color: #9ea098;
+}
+
+.search-submit-btn {
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  background: var(--clay);
+  color: #ffffff;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.search-submit-btn:hover {
+  background: #b85d38;
+}
+
+/* Auditorium curved screen visual */
+.cinema-screen-arch {
+  height: 18px;
   border-radius: 50% / 100% 100% 0 0;
-  box-shadow: 0 -8px 24px rgba(168, 85, 247, 0.4);
+  background: linear-gradient(180deg, rgba(52, 70, 56, 0.35) 0%, rgba(52, 70, 56, 0.05) 100%);
+  border-top: 2px solid var(--green);
+  box-shadow: 0 -4px 16px rgba(52, 70, 56, 0.15);
 }

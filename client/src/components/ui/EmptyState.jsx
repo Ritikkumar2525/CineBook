@@ -5,22 +5,26 @@ export const EmptyState = ({
   icon: Icon = Film,
   title = 'No items found',
   description = 'There are no items to display at this moment.',
+  message,
   actionLabel,
   onAction,
 }) => {
+  const displayMsg = message || description;
+
   return (
-    <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-dark-800 rounded-2xl bg-dark-900/40 my-6">
-      <div className="w-16 h-16 rounded-2xl bg-dark-800/80 border border-dark-700/60 flex items-center justify-center text-dark-400 mb-4 shadow-inner">
-        <Icon className="w-8 h-8 text-primary-400" />
+    <div className="flex flex-col items-center justify-center p-12 text-center border border-dashed border-[#e5e3dc] rounded-2xl bg-white my-6 shadow-sm">
+      <div className="w-14 h-14 rounded-full bg-[#fdf5f2] text-[#cf785b] flex items-center justify-center mb-4">
+        <Icon className="w-7 h-7" />
       </div>
-      <h4 className="text-lg font-bold text-white mb-1.5">{title}</h4>
-      <p className="text-sm text-dark-300 max-w-sm mb-6 leading-relaxed">{description}</p>
+      <h4 className="font-display text-lg font-bold text-[#252824] mb-1">{title}</h4>
+      <p className="text-xs text-[#777a72] max-w-sm mb-6 leading-relaxed">{displayMsg}</p>
       {actionLabel && onAction && (
         <button
           onClick={onAction}
-          className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-900/40 transition-all hover:scale-[1.02] active:scale-[0.98]"
+          className="nav-cta"
         >
-          {actionLabel}
+          <span>{actionLabel}</span>
+          <span>↗</span>
         </button>
       )}
     </div>

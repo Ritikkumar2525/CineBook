@@ -165,20 +165,20 @@ export const ManageMoviesPage = () => {
   return (
     <div className="space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-dark-800 gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-[#e5e3dc] gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight flex items-center">
-            <Film className="w-7 h-7 text-primary-400 mr-2.5" />
+          <h1 className="text-2xl sm:text-3xl font-black text-[#252824] tracking-tight flex items-center">
+            <Film className="w-7 h-7 text-[#cf785b] mr-2.5" />
             Manage Movies
           </h1>
-          <p className="text-xs sm:text-sm text-dark-400 mt-0.5">
+          <p className="text-xs sm:text-sm text-[#777a72] mt-0.5">
             Create, update, and manage the movie catalog and show eligibility
           </p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="self-start sm:self-auto flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-500 shadow-lg shadow-primary-950/40 transition-all hover:scale-105 active:scale-95"
+          className="self-start sm:self-auto flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-bold text-[#252824] bg-[#252824] hover:bg-[#344638] text-white shadow-lg shadow-primary-950/40 transition-all hover:scale-105 active:scale-95"
         >
           <Plus className="w-4 h-4" />
           <span>Add New Movie</span>
@@ -188,7 +188,7 @@ export const ManageMoviesPage = () => {
       {/* Search Input */}
       <div className="flex items-center max-w-md">
         <div className="relative w-full">
-          <Search className="absolute left-3.5 top-3 w-4 h-4 text-dark-400 pointer-events-none" />
+          <Search className="absolute left-3.5 top-3 w-4 h-4 text-[#777a72] pointer-events-none" />
           <input
             type="text"
             value={search}
@@ -197,7 +197,7 @@ export const ManageMoviesPage = () => {
               setCurrentPage(1);
             }}
             placeholder="Search movie titles..."
-            className="w-full pl-10 pr-4 py-2.5 bg-dark-900 border border-dark-700/80 rounded-xl text-xs sm:text-sm text-white placeholder-dark-500 focus:outline-none focus:border-primary-500"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-[#e5e3dc] rounded-xl text-xs sm:text-sm text-[#252824] placeholder-dark-500 focus:outline-none focus:border-primary-500"
           />
         </div>
       </div>
@@ -214,10 +214,10 @@ export const ManageMoviesPage = () => {
           onAction={handleOpenAdd}
         />
       ) : (
-        <div className="bg-dark-900 border border-dark-800 rounded-2xl overflow-hidden shadow-xl">
+        <div className="bg-white border border-[#e5e3dc] rounded-2xl overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-dark-950/80 border-b border-dark-800 text-dark-400 uppercase text-[10px] font-bold tracking-wider">
+              <thead className="bg-[#f7f6f2] border-b border-[#e5e3dc] text-[#777a72] uppercase text-[10px] font-bold tracking-wider">
                 <tr>
                   <th className="py-3.5 px-4">Movie</th>
                   <th className="py-3.5 px-4">Genre / Format</th>
@@ -238,11 +238,11 @@ export const ManageMoviesPage = () => {
                       key={movie._id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      className="hover:bg-dark-800/40 transition-colors"
+                      className="hover:bg-[#f7f6f2]/40 transition-colors"
                     >
                       <td className="py-3.5 px-4">
                         <div className="flex items-center space-x-3">
-                          <div className="w-10 h-14 rounded-lg bg-dark-950 overflow-hidden flex-shrink-0 border border-dark-800">
+                          <div className="w-10 h-14 rounded-lg bg-[#f7f6f2] overflow-hidden flex-shrink-0 border border-[#e5e3dc]">
                             <img
                               src={
                                 movie.posterUrl ||
@@ -253,22 +253,22 @@ export const ManageMoviesPage = () => {
                             />
                           </div>
                           <div>
-                            <p className="font-bold text-white text-sm line-clamp-1">
+                            <p className="font-bold text-[#252824] text-sm line-clamp-1">
                               {movie.title}
                             </p>
-                            <p className="text-[11px] text-dark-400">{movie.language || 'English'}</p>
+                            <p className="text-[11px] text-[#777a72]">{movie.language || 'English'}</p>
                           </div>
                         </div>
                       </td>
 
                       <td className="py-3.5 px-4">
-                        <p className="text-dark-200 line-clamp-1">{genres}</p>
-                        <span className="inline-block mt-0.5 px-2 py-0.5 text-[10px] font-bold rounded bg-primary-600/20 text-primary-300 border border-primary-500/30">
+                        <p className="text-[#252824] line-clamp-1">{genres}</p>
+                        <span className="inline-block mt-0.5 px-2 py-0.5 text-[10px] font-bold rounded bg-primary-600/20 text-[#344638] border border-primary-500/30">
                           {movie.format || '2D'}
                         </span>
                       </td>
 
-                      <td className="py-3.5 px-4 text-dark-300">
+                      <td className="py-3.5 px-4 text-[#555850]">
                         {movie.duration ? `${movie.duration}m` : '120m'}
                       </td>
 
@@ -287,7 +287,7 @@ export const ManageMoviesPage = () => {
                         <div className="flex items-center justify-end space-x-2">
                           <button
                             onClick={() => handleOpenEdit(movie)}
-                            className="p-1.5 rounded-lg bg-dark-800 hover:bg-dark-700 text-dark-300 hover:text-white transition-colors"
+                            className="p-1.5 rounded-lg bg-[#f7f6f2] hover:bg-[#e9e8df] text-[#555850] hover:text-[#252824] transition-colors"
                             title="Edit Movie"
                           >
                             <Pencil className="w-4 h-4" />
@@ -329,29 +329,29 @@ export const ManageMoviesPage = () => {
         <form onSubmit={handleSubmit} className="space-y-4 text-xs sm:text-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="sm:col-span-2">
-              <label className="block text-dark-300 font-semibold mb-1">Movie Title</label>
+              <label className="block text-[#555850] font-semibold mb-1">Movie Title</label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 required
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
 
             <div className="sm:col-span-2">
-              <label className="block text-dark-300 font-semibold mb-1">Synopsis / Storyline</label>
+              <label className="block text-[#555850] font-semibold mb-1">Synopsis / Storyline</label>
               <textarea
                 rows={3}
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 required
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">
+              <label className="block text-[#555850] font-semibold mb-1">
                 Genres (comma separated)
               </label>
               <input
@@ -360,39 +360,39 @@ export const ManageMoviesPage = () => {
                 onChange={(e) => setFormData({ ...formData, genre: e.target.value })}
                 placeholder="Action, Sci-Fi, Adventure"
                 required
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Duration (minutes)</label>
+              <label className="block text-[#555850] font-semibold mb-1">Duration (minutes)</label>
               <input
                 type="number"
                 value={formData.duration}
                 onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                 required
                 min={1}
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Language</label>
+              <label className="block text-[#555850] font-semibold mb-1">Language</label>
               <input
                 type="text"
                 value={formData.language}
                 onChange={(e) => setFormData({ ...formData, language: e.target.value })}
                 required
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Format</label>
+              <label className="block text-[#555850] font-semibold mb-1">Format</label>
               <select
                 value={formData.format}
                 onChange={(e) => setFormData({ ...formData, format: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               >
                 <option value="2D">2D</option>
                 <option value="3D">3D</option>
@@ -403,22 +403,22 @@ export const ManageMoviesPage = () => {
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Rating</label>
+              <label className="block text-[#555850] font-semibold mb-1">Rating</label>
               <input
                 type="text"
                 value={formData.rating}
                 onChange={(e) => setFormData({ ...formData, rating: e.target.value })}
                 placeholder="8.5"
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Release Status</label>
+              <label className="block text-[#555850] font-semibold mb-1">Release Status</label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               >
                 <option value="now_showing">Now Showing</option>
                 <option value="coming_soon">Coming Soon</option>
@@ -426,39 +426,39 @@ export const ManageMoviesPage = () => {
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Release Date</label>
+              <label className="block text-[#555850] font-semibold mb-1">Release Date</label>
               <input
                 type="date"
                 value={formData.releaseDate}
                 onChange={(e) => setFormData({ ...formData, releaseDate: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
 
             <div>
-              <label className="block text-dark-300 font-semibold mb-1">Poster Image URL</label>
+              <label className="block text-[#555850] font-semibold mb-1">Poster Image URL</label>
               <input
                 type="url"
                 value={formData.posterUrl}
                 onChange={(e) => setFormData({ ...formData, posterUrl: e.target.value })}
                 placeholder="https://example.com/poster.jpg"
-                className="w-full px-3.5 py-2.5 bg-dark-950 border border-dark-700/80 rounded-xl text-white focus:outline-none focus:border-primary-500"
+                className="w-full px-3.5 py-2.5 bg-[#f7f6f2] border border-[#e5e3dc] rounded-xl text-[#252824] focus:outline-none focus:border-primary-500"
               />
             </div>
           </div>
 
-          <div className="flex justify-end space-x-3 pt-4 border-t border-dark-800">
+          <div className="flex justify-end space-x-3 pt-4 border-t border-[#e5e3dc]">
             <button
               type="button"
               onClick={() => setModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-dark-300 hover:text-white bg-dark-800 hover:bg-dark-700"
+              className="px-4 py-2 rounded-xl text-[#555850] hover:text-[#252824] bg-[#f7f6f2] hover:bg-[#e9e8df]"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={formSubmitting}
-              className="px-5 py-2 rounded-xl text-white bg-primary-600 hover:bg-primary-500 font-bold shadow-md shadow-primary-950/40"
+              className="px-5 py-2 rounded-xl text-[#252824] bg-[#252824] hover:bg-[#344638] text-white font-bold shadow-md shadow-primary-950/40"
             >
               {formSubmitting ? 'Saving...' : isEditing ? 'Update Movie' : 'Create Movie'}
             </button>

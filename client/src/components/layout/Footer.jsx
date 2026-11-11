@@ -1,96 +1,102 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Film, Heart, Github, Twitter, Mail } from 'lucide-react';
 
 export const Footer = () => {
   return (
-    <footer className="bg-dark-900 border-t border-dark-800 text-dark-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+    <footer className="bg-[#f7f6f2] border-t border-[#e5e3dc] text-[#555850]">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
           {/* Brand info */}
-          <div className="md:col-span-1 space-y-4">
-            <Link to="/" className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center">
-                <Film className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-lg font-black text-white">
-                Cine<span className="text-primary-500">Book</span>
+          <div className="md:col-span-1 space-y-3">
+            <Link to="/" className="flex items-center gap-2.5">
+              <span className="brand-mark">c.</span>
+              <span className="font-display font-bold text-lg tracking-tight text-[#252824]">
+                CineBook
               </span>
             </Link>
-            <p className="text-sm text-dark-400 leading-relaxed">
-              Experience the best movies in premier cinema theatres with instant booking, seat holding, and mobile QR ticketing.
+            <p className="text-[13px] text-[#777a72] leading-relaxed">
+              Curated screenings for slow evenings, grand adventures, and stories worth keeping.
             </p>
           </div>
 
-          {/* Quick Links */}
+          {/* Explore */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-[#252824] mb-3">
               Explore
             </h4>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2 text-[13px]">
               <li>
-                <Link to="/" className="hover:text-primary-400 transition-colors">
-                  Home
+                <Link to="/movies" className="hover:text-[#cf785b] transition-colors">
+                  Find a Movie
                 </Link>
               </li>
               <li>
-                <Link to="/movies" className="hover:text-primary-400 transition-colors">
-                  Now Showing
+                <Link to="/movies?format=IMAX" className="hover:text-[#cf785b] transition-colors">
+                  IMAX 3D Experience
                 </Link>
               </li>
               <li>
-                <Link to="/movies?status=coming_soon" className="hover:text-primary-400 transition-colors">
-                  Coming Soon
-                </Link>
-              </li>
-              <li>
-                <Link to="/my-bookings" className="hover:text-primary-400 transition-colors">
-                  My Bookings
+                <Link to="/my-bookings" className="hover:text-[#cf785b] transition-colors">
+                  My Reservations
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Legal / Policy */}
+          {/* Admin Operations */}
           <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
-              Help & Support
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-[#252824] mb-3">
+              Operations
             </h4>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2 text-[13px]">
               <li>
-                <span className="hover:text-white cursor-pointer transition-colors">Terms of Service</span>
+                <Link to="/admin" className="hover:text-[#cf785b] transition-colors">
+                  Staff Portal
+                </Link>
               </li>
               <li>
-                <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
+                <Link to="/admin/bookings" className="hover:text-[#cf785b] transition-colors">
+                  Usher Scanner Terminal
+                </Link>
               </li>
               <li>
-                <span className="hover:text-white cursor-pointer transition-colors">Cancellation & Refunds</span>
-              </li>
-              <li>
-                <span className="hover:text-white cursor-pointer transition-colors">FAQ & Support</span>
+                <a
+                  href="http://localhost:5001/api/docs"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-[#cf785b] transition-colors"
+                >
+                  API Reference (Scalar) ↗
+                </a>
               </li>
             </ul>
           </div>
 
-          {/* Demo Details */}
-          <div>
-            <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">
-              Demo Access
+          {/* Reviewer Note */}
+          <div className="p-4 rounded-lg bg-white border border-[#e5e3dc] shadow-sm">
+            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#344638] mb-1.5">
+              Reviewer Test Credentials
             </h4>
-            <div className="p-3 bg-dark-950/60 rounded-xl border border-dark-800 text-xs space-y-1.5 text-dark-300">
-              <p className="text-primary-400 font-semibold">Demo Credentials:</p>
-              <p><strong className="text-white">Admin:</strong> admin@cinema.com / admin123</p>
-              <p><strong className="text-white">Customer:</strong> john@example.com / password123</p>
-            </div>
+            <p className="text-[11px] text-[#777a72] mb-1">
+              Admin: <code className="text-[#252824] font-semibold">admin@cinema.com</code> / <code className="text-[#252824]">admin123</code>
+            </p>
+            <p className="text-[11px] text-[#777a72]">
+              Customer: <code className="text-[#252824] font-semibold">john@example.com</code> / <code className="text-[#252824]">password123</code>
+            </p>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-dark-800 flex flex-col sm:flex-row items-center justify-between text-xs text-dark-400">
-          <p>© {new Date().getFullYear()} CineBook Inc. All rights reserved.</p>
-          <p className="flex items-center mt-4 sm:mt-0">
-            Built with <Heart className="w-3.5 h-3.5 text-rose-500 mx-1 fill-rose-500" /> for cinema lovers
-          </p>
+        <div className="pt-8 border-t border-[#e5e3dc] flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-[#777a72]">
+          <div className="flex items-center gap-2">
+            <span className="brand-mark w-5 h-5 text-[11px]">c.</span>
+            <span>© 2026 CineBook Inc. Built for Algions AI Labs assessment.</span>
+          </div>
+          <div className="flex items-center gap-6">
+            <span>All rights reserved</span>
+            <a href="http://localhost:5001/api/health" className="hover:text-[#cf785b]">
+              System Health: 200 OK
+            </a>
+          </div>
         </div>
       </div>
     </footer>

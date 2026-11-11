@@ -8,15 +8,11 @@ import {
   Calendar,
   Clock,
   MapPin,
-  Tv,
   ArrowLeft,
-  Download,
-  Share2
+  ArrowUpRight
 } from 'lucide-react';
 import { bookingsApi } from '../../services/api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
-import Badge from '../../components/ui/Badge';
-import toast from 'react-hot-toast';
 
 export const BookingConfirmationPage = () => {
   const { bookingId } = useParams();
@@ -53,160 +49,133 @@ export const BookingConfirmationPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <LoadingSpinner size="lg" text="Loading booking ticket..." />
+      <div className="min-h-[70vh] bg-[#f7f6f2] flex items-center justify-center">
+        <LoadingSpinner size="lg" />
       </div>
     );
   }
 
   if (error || !booking) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-20 text-center">
-        <div className="bg-dark-900 border border-dark-800 rounded-3xl p-8">
-          <Ticket className="w-16 h-16 text-rose-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white mb-2">{error || 'Booking Not Found'}</h2>
-          <p className="text-dark-400 text-sm mb-6">
-            The booking reference was not found or you may not have permission to view it.
+      <div className="max-w-xl mx-auto px-4 py-24 text-center bg-[#f7f6f2]">
+        <div className="bg-white border border-[#e5e3dc] rounded-2xl p-8 shadow-sm">
+          <Ticket className="w-12 h-12 text-[#cf785b] mx-auto mb-4" />
+          <h2 className="font-display text-xl font-bold text-[#252824] mb-2">
+            Ticket Not Found
+          </h2>
+          <p className="text-[#777a72] text-xs mb-6">
+            We could not find a confirmed reservation with this identifier.
           </p>
-          <Link
-            to="/my-bookings"
-            className="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-semibold text-sm transition-all"
-          >
-            Go to My Bookings
+          <Link to="/my-bookings" className="nav-cta">
+            View My Reservations
           </Link>
         </div>
       </div>
     );
   }
 
-  const movie = booking.movie || booking.showtime?.movie || {};
-  const theatre = booking.theatre || booking.showtime?.theatre || {};
-  const screen = booking.screen || booking.showtime?.screen || {};
   const showtime = booking.showtime || {};
-
+  const movie = showtime.movie || {};
+  const screen = showtime.screen || {};
+  const theatre = screen.theatre || {};
   const startTime = showtime.startTime ? new Date(showtime.startTime) : null;
-  const bookingDate = booking.createdAt ? new Date(booking.createdAt) : new Date();
 
   return (
-    <div className="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#f7f6f2] text-[#252824] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        {/* Top Success Animation */}
+        {/* Top Success Notice */}
         <div className="text-center mb-8 print:hidden">
-          <motion.div
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-            className="w-20 h-20 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-emerald-950/30"
-          >
-            <CheckCircle className="w-12 h-12" />
-          </motion.div>
-          <motion.h1
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-3xl font-black text-white tracking-tight"
-          >
-            Booking Confirmed!
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-dark-400 text-sm mt-1"
-          >
-            Your electronic cinema pass is ready. Present the QR code at the cinema entry gate.
-          </motion.p>
+          <div className="w-14 h-14 rounded-full bg-[#e5eae4] text-[#344638] flex items-center justify-center mx-auto mb-3 shadow-sm">
+            <CheckCircle className="w-8 h-8" />
+          </div>
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-[#252824]">
+            Reservation Confirmed.
+          </h1>
+          <p className="text-[#777a72] text-xs mt-1">
+            Present your scannable pass at the cinema turnstile for usher validation.
+          </p>
         </div>
 
-        {/* Action Buttons Top */}
+        {/* Action Header */}
         <div className="flex items-center justify-between mb-6 print:hidden">
           <Link
             to="/my-bookings"
-            className="flex items-center space-x-1.5 text-xs font-semibold text-dark-300 hover:text-white transition-colors"
+            className="flex items-center gap-1.5 text-xs font-semibold text-[#777a72] hover:text-[#252824] transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>All My Bookings</span>
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>My Bookings</span>
           </Link>
 
           <button
             onClick={handlePrint}
-            className="flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-dark-800 hover:bg-dark-700 border border-dark-700/80 transition-all shadow-md"
+            className="flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-[#252824] bg-white border border-[#e5e3dc] hover:border-[#cf785b] transition-all shadow-sm"
           >
-            <Printer className="w-4 h-4 text-primary-400" />
-            <span>Print Ticket</span>
+            <Printer className="w-3.5 h-3.5 text-[#cf785b]" />
+            <span>Print Pass</span>
           </button>
         </div>
 
-        {/* Printable Ticket Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="bg-dark-900 border border-dark-700/80 rounded-3xl overflow-hidden shadow-2xl relative"
-        >
-          {/* Ticket Header */}
-          <div className="bg-gradient-to-r from-primary-900 via-primary-800 to-indigo-950 p-6 sm:p-8 text-white relative">
+        {/* StayBnb Style Digital Boarding Pass */}
+        <div className="bg-white border border-[#e5e3dc] rounded-2xl overflow-hidden shadow-panel relative">
+          {/* Ticket Header Banner */}
+          <div className="bg-[#344638] p-6 sm:p-8 text-[#f7f6f2] relative">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs uppercase tracking-widest font-black text-primary-300">
-                CineBook Cinema Ticket
+              <span className="text-[10px] uppercase tracking-widest font-bold text-[#cbdbcb]">
+                CineBook Boarding Pass
               </span>
-              <Badge status={booking.status || 'confirmed'} />
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white backdrop-blur-sm">
+                {booking.status}
+              </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight mb-2">
-              {movie.title || 'Cinema Movie'}
+            <h2 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-white mb-2">
+              {movie.title || 'Cinema Screening'}
             </h2>
 
-            <div className="flex flex-wrap items-center gap-3 text-xs text-primary-200">
-              {movie.format && (
-                <span className="px-2.5 py-0.5 rounded bg-black/30 font-bold border border-white/20">
-                  {movie.format}
-                </span>
-              )}
-              {movie.language && (
-                <span className="px-2.5 py-0.5 rounded bg-black/30 font-semibold border border-white/20">
-                  {movie.language}
-                </span>
-              )}
-              {movie.duration && <span>{movie.duration} mins</span>}
+            <div className="flex flex-wrap items-center gap-3 text-xs text-[#cbdbcb]">
+              <span>{movie.format || 'IMAX 3D'}</span>
+              <span>·</span>
+              <span>{movie.language || 'English'}</span>
+              <span>·</span>
+              <span>{movie.duration} mins</span>
             </div>
           </div>
 
-          {/* Ticket Middle: Perforated Tear Line Effect */}
-          <div className="relative py-2 bg-dark-900 flex items-center justify-between">
-            <div className="w-6 h-6 rounded-full bg-dark-950 -ml-3 border-r border-dark-700/80" />
-            <div className="flex-1 border-t-2 border-dashed border-dark-700/80 mx-2" />
-            <div className="w-6 h-6 rounded-full bg-dark-950 -mr-3 border-l border-dark-700/80" />
+          {/* Perforated Notches Divider */}
+          <div className="relative py-2 bg-white flex items-center justify-between">
+            <div className="w-5 h-5 rounded-full bg-[#f7f6f2] -ml-2.5 border-r border-[#e5e3dc]" />
+            <div className="flex-1 border-t border-dashed border-[#e5e3dc] mx-2" />
+            <div className="w-5 h-5 rounded-full bg-[#f7f6f2] -mr-2.5 border-l border-[#e5e3dc]" />
           </div>
 
-          {/* Ticket Body */}
+          {/* Pass Body Details */}
           <div className="p-6 sm:p-8 space-y-6">
-            <div className="grid grid-cols-2 gap-4 text-xs">
+            <div className="grid grid-cols-2 gap-5 text-xs">
               <div>
-                <span className="text-dark-400 uppercase font-bold tracking-wider text-[10px]">
-                  Theatre & Location
+                <span className="text-[#777a72] uppercase font-bold text-[10px] tracking-wider block">
+                  Multiplex Venue
                 </span>
-                <p className="text-white font-bold text-sm mt-0.5">
-                  {theatre.name || 'CineBook Main Cinema'}
+                <p className="font-display text-sm font-bold text-[#252824] mt-0.5">
+                  {theatre.name || 'PVR ICON Palladium'}
                 </p>
-                <p className="text-dark-400 text-xs">{theatre.location || 'Downtown'}</p>
+                <p className="text-[#777a72] text-[11px]">{theatre.city || 'Mumbai'}</p>
               </div>
 
               <div>
-                <span className="text-dark-400 uppercase font-bold tracking-wider text-[10px]">
+                <span className="text-[#777a72] uppercase font-bold text-[10px] tracking-wider block">
                   Auditorium
                 </span>
-                <p className="text-white font-bold text-sm mt-0.5">
+                <p className="font-display text-sm font-bold text-[#252824] mt-0.5">
                   {screen.name || 'Screen 1'}
                 </p>
-                <p className="text-dark-400 text-xs">Dolby Atmos Surround</p>
+                <p className="text-[#777a72] text-[11px]">{screen.screenType || 'IMAX 3D'}</p>
               </div>
 
               <div>
-                <span className="text-dark-400 uppercase font-bold tracking-wider text-[10px]">
-                  Date & Time
+                <span className="text-[#777a72] uppercase font-bold text-[10px] tracking-wider block">
+                  Screening Date & Time
                 </span>
-                <p className="text-white font-bold text-sm mt-0.5">
+                <p className="font-display text-sm font-bold text-[#252824] mt-0.5">
                   {startTime
                     ? startTime.toLocaleDateString(undefined, {
                         weekday: 'short',
@@ -214,86 +183,79 @@ export const BookingConfirmationPage = () => {
                         day: 'numeric',
                         year: 'numeric',
                       })
-                    : 'N/A'}
+                    : 'Scheduled'}
                 </p>
-                <p className="text-primary-400 font-semibold text-xs">
+                <p className="text-[#5d7159] font-semibold text-[11px]">
                   {startTime
-                    ? startTime.toLocaleTimeString([], {
+                    ? startTime.toLocaleTimeString(undefined, {
                         hour: '2-digit',
                         minute: '2-digit',
-                        hour12: true,
                       })
-                    : 'N/A'}
+                    : ''}
                 </p>
               </div>
 
               <div>
-                <span className="text-dark-400 uppercase font-bold tracking-wider text-[10px]">
-                  Booked Seats
+                <span className="text-[#777a72] uppercase font-bold text-[10px] tracking-wider block">
+                  Payment Status
                 </span>
-                <p className="text-white font-black text-base mt-0.5">
-                  {(booking.seats || []).map((s) => s.seatNumber).join(', ') || 'N/A'}
+                <p className="font-display text-sm font-bold text-[#5d7159] mt-0.5">
+                  Completed (Simulated)
                 </p>
-                <p className="text-dark-400 text-xs">
-                  {booking.seats?.length || 0} Seat(s) Reserved
-                </p>
+                <p className="text-[#777a72] text-[11px]">₹{booking.totalAmount}.00</p>
               </div>
             </div>
 
-            {/* Financial summary */}
-            <div className="pt-4 border-t border-dark-800 flex justify-between items-center text-xs">
+            {/* Reserved Seats List */}
+            <div className="pt-4 border-t border-[#e5e3dc]">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-[#777a72] block mb-2">
+                Confirmed Seats ({booking.seats?.length})
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {booking.seats?.map((s) => (
+                  <span
+                    key={s.seatId}
+                    className="px-3 py-1.5 rounded-lg bg-[#f7f6f2] border border-[#e5e3dc] font-display font-bold text-xs text-[#252824]"
+                  >
+                    {s.seatId} · {s.category} (₹{s.price})
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            {/* Scannable QR Code Pass */}
+            <div className="pt-4 border-t border-[#e5e3dc] flex flex-col sm:flex-row items-center justify-between gap-6 p-4 rounded-xl bg-[#f7f6f2] border border-[#e5e3dc]">
               <div>
-                <span className="text-dark-400 uppercase tracking-wider text-[10px] font-bold">
-                  Total Paid
+                <span className="text-[10px] uppercase font-bold tracking-widest text-[#777a72] block">
+                  Usher Validation Token
                 </span>
-                <p className="text-xl font-black text-emerald-400 mt-0.5">
-                  ₹{booking.totalAmount || 0}
-                </p>
-              </div>
-              <div className="text-right">
-                <span className="text-dark-400 uppercase tracking-wider text-[10px] font-bold">
-                  Booking Reference
-                </span>
-                <p className="text-sm font-mono font-bold text-primary-400 mt-0.5 tracking-wider">
-                  {booking.bookingRef || 'CNB-' + booking._id?.substring(0, 8).toUpperCase()}
-                </p>
-              </div>
-            </div>
-
-            {/* QR Code Section */}
-            <div className="pt-6 border-t border-dark-800 flex flex-col sm:flex-row items-center justify-between gap-6 bg-dark-950/60 p-4 rounded-2xl border border-dark-800">
-              <div className="flex-1 text-center sm:text-left">
-                <p className="text-xs font-bold text-white mb-1">Entry Gate Pass</p>
-                <p className="text-[11px] text-dark-400 leading-relaxed">
-                  Scan this code directly at the hall usher terminal. Valid for all seats in this booking.
-                </p>
-                <span className="inline-block mt-2 font-mono text-[11px] text-primary-400 font-semibold">
+                <span className="font-mono text-xl sm:text-2xl font-bold tracking-wider text-[#252824] block mt-1">
                   {booking.bookingRef}
                 </span>
+                <p className="text-[11px] text-[#777a72] mt-1">
+                  Valid for single-admission gate scan at auditorium entrance.
+                </p>
               </div>
 
-              {/* QR Image or SVG Representation */}
-              <div className="p-3 bg-white rounded-xl shadow-lg flex-shrink-0">
-                {booking.qrCode ? (
+              {booking.qrCode && (
+                <div className="p-2 bg-white rounded-lg border border-[#e5e3dc] shadow-sm flex-shrink-0">
                   <img
                     src={booking.qrCode}
                     alt="Ticket QR Code"
                     className="w-28 h-28 object-contain"
                   />
-                ) : (
-                  <div className="w-28 h-28 flex flex-col items-center justify-center text-dark-900 border-2 border-dark-900 p-1 text-center">
-                    <span className="text-[10px] font-mono font-black break-all">
-                      {booking.bookingRef || 'CINE-QR'}
-                    </span>
-                    <span className="text-[8px] uppercase tracking-tighter mt-1 font-bold">
-                      Scan to Validate
-                    </span>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
-        </motion.div>
+        </div>
+
+        {/* Back navigation */}
+        <div className="mt-8 text-center print:hidden">
+          <Link to="/" className="text-xs font-semibold text-[#777a72] hover:text-[#cf785b]">
+            Return to Homepage ↗
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -12,7 +12,7 @@ import {
   X,
   ArrowLeft,
   LogOut,
-  ShieldAlert
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -29,73 +29,68 @@ export const AdminLayout = () => {
   };
 
   const navItems = [
-    { name: 'Dashboard', path: '/admin', icon: LayoutDashboard, end: true },
-    { name: 'Movies', path: '/admin/movies', icon: Film },
-    { name: 'Theatres', path: '/admin/theatres', icon: Building2 },
-    { name: 'Screens', path: '/admin/screens', icon: Tv },
-    { name: 'Showtimes', path: '/admin/showtimes', icon: CalendarClock },
-    { name: 'Bookings', path: '/admin/bookings', icon: Ticket },
-    { name: 'Audit Logs', path: '/admin/audit-logs', icon: ClipboardList },
+    { name: 'Dashboard & Reports', path: '/admin', icon: LayoutDashboard, end: true },
+    { name: 'Movies Catalog', path: '/admin/movies', icon: Film },
+    { name: 'Theatres & Venues', path: '/admin/theatres', icon: Building2 },
+    { name: 'Screens & Tiers', path: '/admin/screens', icon: Tv },
+    { name: 'Showtime Schedules', path: '/admin/showtimes', icon: CalendarClock },
+    { name: 'Bookings & Usher Scanner', path: '/admin/bookings', icon: Ticket },
+    { name: 'Audit Logs Trail', path: '/admin/audit-logs', icon: ClipboardList },
   ];
 
   const getLinkClasses = ({ isActive }) =>
-    `flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all ${
+    `flex items-center space-x-3 px-3.5 py-2.5 rounded-lg text-xs font-semibold transition-all ${
       isActive
-        ? 'bg-primary-600/20 text-primary-300 border border-primary-500/30 font-semibold'
-        : 'text-dark-300 hover:text-white hover:bg-dark-800'
+        ? 'bg-[#252824] text-white shadow-sm'
+        : 'text-[#555850] hover:text-[#252824] hover:bg-[#f7f6f2]'
     }`;
 
   return (
-    <div className="min-h-screen bg-dark-950 flex flex-col md:flex-row text-slate-100">
-      {/* Mobile Header */}
-      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-dark-900 border-b border-dark-800 sticky top-0 z-40">
+    <div className="min-h-screen bg-[#f7f6f2] flex flex-col md:flex-row text-[#252824]">
+      {/* Mobile Top Header */}
+      <div className="md:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#e5e3dc] sticky top-0 z-40">
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center">
-            <ShieldAlert className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-bold text-white tracking-tight">Admin Console</span>
+          <span className="brand-mark w-7 h-7 text-xs">c.</span>
+          <span className="font-display font-bold text-sm text-[#252824]">Staff Operations</span>
         </div>
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="p-2 rounded-lg text-dark-300 hover:text-white hover:bg-dark-800"
-          aria-label="Toggle sidebar"
+          className="p-1.5 rounded-lg border border-[#e5e3dc] text-[#555850] hover:text-[#252824]"
         >
           {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
       </div>
 
-      {/* Sidebar Overlay on Mobile */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
+      {/* Sidebar Navigation */}
       <aside
-        className={`fixed md:sticky top-0 left-0 z-50 h-screen w-64 bg-dark-900 border-r border-dark-800 flex flex-col justify-between transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-[#e5e3dc] transform transition-transform duration-200 ease-in-out md:static md:translate-x-0 flex flex-col justify-between ${
+          sidebarOpen ? 'translate-x-0 shadow-panel' : '-translate-x-full'
         }`}
       >
         <div>
-          {/* Sidebar Header */}
-          <div className="px-6 py-5 border-b border-dark-800 flex items-center justify-between">
-            <Link to="/" className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center">
-                <Film className="w-4 h-4 text-white" />
+          {/* Brand header */}
+          <div className="h-[76px] px-6 border-b border-[#e5e3dc] flex items-center justify-between">
+            <Link to="/" className="flex items-center gap-2.5">
+              <span className="brand-mark">c.</span>
+              <div>
+                <span className="font-display font-bold text-base text-[#252824] block leading-tight">
+                  CineBook
+                </span>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-[#344638]">
+                  Staff Portal
+                </span>
               </div>
-              <span className="text-lg font-bold text-white tracking-tight">
-                Cine<span className="text-primary-500">Book</span>
-              </span>
             </Link>
-            <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
-              Admin
-            </span>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="md:hidden text-[#777a72]"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-4 space-y-1.5">
+          <nav className="p-4 space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -106,7 +101,7 @@ export const AdminLayout = () => {
                   onClick={() => setSidebarOpen(false)}
                   className={getLinkClasses}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4 h-4 flex-shrink-0" />
                   <span>{item.name}</span>
                 </NavLink>
               );
@@ -114,24 +109,27 @@ export const AdminLayout = () => {
           </nav>
         </div>
 
-        {/* Sidebar Footer */}
-        <div className="p-4 border-t border-dark-800 space-y-2">
+        {/* Footer profile & return */}
+        <div className="p-4 border-t border-[#e5e3dc] space-y-2">
           <Link
             to="/"
-            className="flex items-center space-x-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-dark-300 hover:text-white hover:bg-dark-800 transition-colors"
+            className="flex items-center justify-between px-3.5 py-2 rounded-lg text-xs font-semibold text-[#555850] hover:text-[#252824] hover:bg-[#f7f6f2] transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Back to Cinema Front</span>
+            <div className="flex items-center gap-2">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Back to Cinema Front</span>
+            </div>
+            <span>↗</span>
           </Link>
 
-          <div className="pt-2 flex items-center justify-between px-3">
-            <div className="truncate pr-2">
-              <p className="text-xs font-medium text-white truncate">{user?.name || 'Admin User'}</p>
-              <p className="text-[11px] text-dark-400 truncate">{user?.email}</p>
+          <div className="p-3 rounded-lg bg-[#f7f6f2] border border-[#e5e3dc] flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[#252824] truncate">{user?.name || 'Admin'}</p>
+              <p className="text-[10px] text-[#777a72] truncate">{user?.email}</p>
             </div>
             <button
               onClick={handleLogout}
-              className="p-1.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors"
+              className="p-1.5 text-[#cf785b] hover:text-[#a85338]"
               title="Sign Out"
             >
               <LogOut className="w-4 h-4" />
@@ -140,8 +138,8 @@ export const AdminLayout = () => {
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+      {/* Main Content Pane */}
+      <main className="flex-1 min-w-0 bg-[#f7f6f2] p-4 sm:p-6 lg:p-8">
         <Outlet />
       </main>
     </div>
