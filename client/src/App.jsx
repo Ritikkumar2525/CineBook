@@ -88,9 +88,11 @@ export const App = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="login" element={<LoginPage />} />
-          <Route path="register" element={<RegisterPage />} />
         </Route>
+
+        {/* Standalone Canvas Auth Routes matching design screenshot */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
 
         {/* Admin Routes wrapped in AdminLayout and ProtectedRoute(admin) */}
         <Route

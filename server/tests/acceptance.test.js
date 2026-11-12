@@ -45,9 +45,10 @@ describe('Official Acceptance Criteria Test Suite', () => {
     });
     user2Token = u2Res.body.token;
 
-    // Pick an active showtime and get seat layout
+    // Pick an active future showtime and get seat layout
     const showtimesRes = await request(app).get('/api/showtimes');
-    testShowtimeId = showtimesRes.body.data[0]._id;
+    const futureShowtime = showtimesRes.body.data.find((s) => new Date(s.startTime) > new Date()) || showtimesRes.body.data[0];
+    testShowtimeId = futureShowtime._id;
 
     const availRes = await request(app).get(`/api/showtimes/${testShowtimeId}`);
     screenTotalSeats = availRes.body.data.totals.totalSeats;

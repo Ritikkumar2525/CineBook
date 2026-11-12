@@ -146,7 +146,8 @@ describe('Cinema Hall Booking System Backend API', () => {
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.data.length).toBeGreaterThan(0);
-      testShowtimeId = res.body.data[0]._id;
+      const future = res.body.data.find((s) => new Date(s.startTime) > new Date()) || res.body.data[0];
+      testShowtimeId = future._id;
     });
 
     it('GET /api/showtimes/:id should return seat availability map', async () => {
