@@ -9,8 +9,12 @@ import {
   Clock,
   MapPin,
   ArrowLeft,
-  ArrowUpRight
+  ArrowUpRight,
+  Gift,
+  Share2,
+  Copy
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { bookingsApi } from '../../services/api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
@@ -45,6 +49,20 @@ export const BookingConfirmationPage = () => {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleShareGiftPass = () => {
+    const showStr = startTime
+      ? `${startTime.toLocaleDateString()} at ${startTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+      : 'Upcoming Show';
+    const seatsStr = (booking.seats || []).map((s) => s.seatId).join(', ');
+    const text = `🍿 Here is your movie ticket for ${movie.title || 'the movie'}!\n📅 Show: ${showStr}\n🏛️ Venue: ${theatre.name || 'Cinema'}\n🎟️ Seats: ${seatsStr}\n🎫 Reference: ${booking.bookingRef}\n🔗 Pass Link: ${window.location.href}`;
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+    }
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+    toast.success('Ticket link copied to clipboard & WhatsApp opened!');
   };
 
   if (loading) {
@@ -140,6 +158,51 @@ export const BookingConfirmationPage = () => {
               <span>{movie.duration} mins</span>
             </div>
           </div>
+
+          {/* Gift Ticket / Booked for Other Banner */}
+          {booking.bookedForOther && (
+            <div className="bg-[#fdf5f2] border-b border-[#f3d9d0] p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#cf785b]/10 text-[#cf785b] flex items-center justify-center shrink-0">
+                  <Gift className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider bg-[#cf785b] text-white px-2 py-0.5 rounded-full">
+                      Gift Ticket
+                    </span>
+                    <span className="text-xs font-semibold text-[#777a72]">
+                      Booked for someone else
+                    </span>
+                  </div>
+                  <p className="text-sm font-bold text-[#252824] mt-0.5">
+                    Attendee: {booking.recipient?.name || 'Special Guest'}
+                  </p>
+                  {booking.recipient?.phone && (
+                    <p className="text-[11px] text-[#777a72]">
+                      Contact: {booking.recipient.phone}
+                    </p>
+                  )}
+                  {booking.recipient?.message && (
+                    <p className="text-xs italic text-[#777a72] mt-0.5">
+                      "{booking.recipient.message}"
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 print:hidden self-end sm:self-center">
+                <button
+                  type="button"
+                  onClick={handleShareGiftPass}
+                  className="px-3.5 py-2 rounded-full bg-[#252824] hover:bg-[#cf785b] text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Share Pass (WhatsApp)</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Perforated Notches Divider */}
           <div className="relative py-2 bg-white flex items-center justify-between">

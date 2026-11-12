@@ -88,6 +88,16 @@ const bookingSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    bookedForOther: {
+      type: Boolean,
+      default: false,
+    },
+    recipient: {
+      name: { type: String, trim: true },
+      phone: { type: String, trim: true },
+      email: { type: String, trim: true },
+      message: { type: String, trim: true },
+    },
     cancelledAt: {
       type: Date,
     },

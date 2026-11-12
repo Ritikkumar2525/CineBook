@@ -10,7 +10,8 @@ import {
   ChevronUp,
   XCircle,
   ExternalLink,
-  ArrowUpRight
+  ArrowUpRight,
+  Gift
 } from 'lucide-react';
 import { bookingsApi } from '../../services/api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
@@ -179,7 +180,7 @@ export const MyBookingsPage = () => {
                       </div>
 
                       <div className="space-y-1">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-display font-bold text-base text-[#252824]">
                             {movie.title || 'Screening'}
                           </h3>
@@ -188,6 +189,12 @@ export const MyBookingsPage = () => {
                           >
                             {b.status}
                           </span>
+                          {b.bookedForOther && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-[#fef7ee] text-[#b45309] border border-[#fde68a] flex items-center gap-1">
+                              <Gift className="w-3 h-3 text-[#b45309]" />
+                              <span>Gifted to {b.recipient?.name || 'Friend'}</span>
+                            </span>
+                          )}
                         </div>
 
                         <p className="text-xs text-[#777a72]">
@@ -267,6 +274,23 @@ export const MyBookingsPage = () => {
                             </span>
                           ))}
                         </div>
+
+                        {b.bookedForOther && b.recipient && (
+                          <div className="pt-2 border-t border-[#f0efe9]">
+                            <div className="p-2.5 rounded-lg bg-[#fef7ee] border border-[#fde68a] text-[11px] text-[#78350f] space-y-1">
+                              <div className="font-bold flex items-center gap-1.5 flex-wrap">
+                                <Gift className="w-3.5 h-3.5 text-[#b45309]" />
+                                <span>Booked as a gift for:</span>
+                                <span className="text-[#252824]">{b.recipient.name}</span>
+                                {b.recipient.phone && <span className="text-[#78350f]">({b.recipient.phone})</span>}
+                                {b.recipient.email && <span className="text-[#78350f]">· {b.recipient.email}</span>}
+                              </div>
+                              {b.recipient.message && (
+                                <p className="italic text-[#92400e]">"{b.recipient.message}"</p>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         {b.mealOrders && b.mealOrders.length > 0 && (
                           <div className="pt-2 border-t border-[#f0efe9]">

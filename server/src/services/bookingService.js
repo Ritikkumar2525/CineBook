@@ -36,17 +36,30 @@ const createBooking = async (
   showtimeId,
   seatIds,
   mealOrdersOrIp = [],
-  maybeIp = null
+  maybeIpOrOptions = null,
+  maybeOptions = null
 ) => {
   let mealOrders = [];
   let ipAddress = null;
+  let bookedForOther = false;
+  let recipient = null;
 
   if (Array.isArray(mealOrdersOrIp)) {
     mealOrders = mealOrdersOrIp;
-    ipAddress = maybeIp;
+    if (typeof maybeIpOrOptions === 'string') {
+      ipAddress = maybeIpOrOptions;
+      if (maybeOptions && typeof maybeOptions === 'object') {
+        bookedForOther = Boolean(maybeOptions.bookedForOther);
+        recipient = maybeOptions.recipient || null;
+      }
+    } else if (maybeIpOrOptions && typeof maybeIpOrOptions === 'object') {
+      bookedForOther = Boolean(maybeIpOrOptions.bookedForOther);
+      recipient = maybeIpOrOptions.recipient || null;
+      ipAddress = maybeIpOrOptions.ipAddress || null;
+    }
   } else if (typeof mealOrdersOrIp === 'string') {
     ipAddress = mealOrdersOrIp;
-    mealOrders = Array.isArray(maybeIp) ? maybeIp : [];
+    mealOrders = Array.isArray(maybeIpOrOptions) ? maybeIpOrOptions : [];
   }
 
   if (!seatIds || !Array.isArray(seatIds) || seatIds.length === 0) {
@@ -195,6 +208,8 @@ const createBooking = async (
           qrCode,
           status: 'confirmed',
           paymentStatus: 'completed',
+          bookedForOther: Boolean(bookedForOther),
+          recipient: bookedForOther ? recipient : undefined,
         },
       ],
       session ? { session } : {}

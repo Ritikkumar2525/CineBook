@@ -18,7 +18,9 @@ import {
   Minus,
   Sparkles,
   ShoppingBag,
-  Trash2
+  Trash2,
+  Gift,
+  User
 } from 'lucide-react';
 import { showtimesApi, bookingsApi, mealsApi } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -42,6 +44,12 @@ export const SeatSelectionPage = () => {
   const [timeLeft, setTimeLeft] = useState(0); // in seconds
   const [isHolding, setIsHolding] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+
+  // "Book for Other" / Gift Ticket state
+  const [isBookedForOther, setIsBookedForOther] = useState(false);
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientContact, setRecipientContact] = useState('');
+  const [giftMessage, setGiftMessage] = useState('');
 
   // In-Seat Meal & Snack Ordering State
   const [meals, setMeals] = useState([]);
@@ -263,11 +271,27 @@ export const SeatSelectionPage = () => {
         quantity: m.quantity,
       }));
 
-      const res = await bookingsApi.createBooking({
+      const payload = {
         showtimeId,
         seats: seatIds,
         mealOrders: mealOrdersPayload,
-      });
+      };
+
+      if (isBookedForOther) {
+        if (!recipientName.trim()) {
+          toast.error("Please enter recipient's name or toggle off 'Booking for someone else'");
+          setIsConfirming(false);
+          return;
+        }
+        payload.bookedForOther = true;
+        payload.recipient = {
+          name: recipientName.trim(),
+          phone: recipientContact.trim(),
+          message: giftMessage.trim(),
+        };
+      }
+
+      const res = await bookingsApi.createBooking(payload);
 
       const bookingResult = res.data?.data || res.data;
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
@@ -778,6 +802,77 @@ export const SeatSelectionPage = () => {
                   ₹{totalAmount}.00
                 </span>
               </div>
+            </div>
+
+            {/* Book for someone else / Gift ticket section */}
+            <div className="bg-[#f7f6f2] border border-[#e5e3dc] rounded-2xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Gift className="w-4 h-4 text-[#cf785b]" />
+                  <span className="text-xs font-bold text-[#252824]">
+                    Booking for someone else?
+                  </span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isBookedForOther}
+                    onChange={(e) => setIsBookedForOther(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-[#d8d6cc] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#cf785b]"></div>
+                </label>
+              </div>
+
+              <AnimatePresence>
+                {isBookedForOther && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="overflow-hidden pt-3 space-y-2.5 text-xs"
+                  >
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#777a72] mb-1">
+                        Recipient's Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Priyanshu Sharma"
+                        value={recipientName}
+                        onChange={(e) => setRecipientName(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-[#e5e3dc] bg-white text-xs text-[#252824] focus:outline-none focus:border-[#cf785b]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#777a72] mb-1">
+                        Recipient Mobile / Email (for ticket pass)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="+91 98765 43210 or friend@email.com"
+                        value={recipientContact}
+                        onChange={(e) => setRecipientContact(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-[#e5e3dc] bg-white text-xs text-[#252824] focus:outline-none focus:border-[#cf785b]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#777a72] mb-1">
+                        Personal Gift Note
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Enjoy the show & in-seat popcorn! 🍿"
+                        value={giftMessage}
+                        onChange={(e) => setGiftMessage(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl border border-[#e5e3dc] bg-white text-xs text-[#252824] focus:outline-none focus:border-[#cf785b]"
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* CTA Buttons */}

@@ -39,7 +39,7 @@ const holdSeats = async (req, res, next) => {
  */
 const createBooking = async (req, res, next) => {
   try {
-    const { showtimeId, seats, seatIds, mealOrders } = req.body;
+    const { showtimeId, seats, seatIds, mealOrders, bookedForOther, recipient } = req.body;
     const seatsToBook = seatIds || seats;
 
     if (!showtimeId || !seatsToBook || !Array.isArray(seatsToBook) || seatsToBook.length === 0) {
@@ -54,7 +54,8 @@ const createBooking = async (req, res, next) => {
       showtimeId,
       seatsToBook,
       mealOrders || [],
-      req.ip
+      req.ip,
+      { bookedForOther, recipient }
     );
 
     res.status(201).json({
