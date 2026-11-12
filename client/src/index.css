@@ -179,3 +179,12 @@
   border-top: 2px solid var(--green);
   box-shadow: 0 -4px 16px rgba(52, 70, 56, 0.15);
 }
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
