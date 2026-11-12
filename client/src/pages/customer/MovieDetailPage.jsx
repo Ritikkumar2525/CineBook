@@ -23,17 +23,7 @@ import {
 import { moviesApi, showtimesApi, theatresApi, screensApi } from '../../services/api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
-
-// Local date key helper (YYYY-MM-DD) avoiding UTC day-shift
-export const toLocalDateKey = (dateInput) => {
-  if (!dateInput) return '';
-  const d = new Date(dateInput);
-  if (isNaN(d.getTime())) return '';
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+import { toLocalDateKey } from '../../utils/date';
 
 export const MovieDetailPage = () => {
   const { id } = useParams();

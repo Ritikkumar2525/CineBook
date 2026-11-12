@@ -1,5 +1,7 @@
 const Movie = require('../models/Movie');
 const Showtime = require('../models/Showtime');
+const Theatre = require('../models/Theatre');
+const Screen = require('../models/Screen');
 const auditService = require('../services/auditService');
 
 /**
@@ -23,11 +25,37 @@ const getMovies = async (req, res, next) => {
 
     const query = {};
 
-    if (search) {
-      query.title = { $regex: search.trim(), $options: 'i' };
+    if (search && search.trim()) {
+      const term = search.trim();
+      const searchRegex = { $regex: term, $options: 'i' };
+
+      // Search matching theatres/cities to find movies screening there
+      const matchedTheatres = await Theatre.find({
+        $or: [{ name: searchRegex }, { city: searchRegex }, { location: searchRegex }],
+      }).select('_id');
+
+      let movieIdsFromTheatres = [];
+      if (matchedTheatres.length > 0) {
+        const theatreIds = matchedTheatres.map((t) => t._id);
+        const screens = await Screen.find({ theatre: { $in: theatreIds } }).select('_id');
+        const screenIds = screens.map((s) => s._id);
+        movieIdsFromTheatres = await Showtime.find({ screen: { $in: screenIds } }).distinct('movie');
+      }
+
+      const orConditions = [
+        { title: searchRegex },
+        { genre: searchRegex },
+        { description: searchRegex },
+      ];
+
+      if (movieIdsFromTheatres.length > 0) {
+        orConditions.push({ _id: { $in: movieIdsFromTheatres } });
+      }
+
+      query.$or = orConditions;
     }
 
-    if (genre) {
+    if (genre && genre !== 'all') {
       query.genre = { $in: Array.isArray(genre) ? genre : [genre] };
     }
 
@@ -35,11 +63,11 @@ const getMovies = async (req, res, next) => {
       query.language = { $regex: new RegExp(`^${language.trim()}$`, 'i') };
     }
 
-    if (format) {
+    if (format && format !== 'all') {
       query.format = format;
     }
 
-    if (status) {
+    if (status && status !== 'all') {
       query.status = status;
     }
 

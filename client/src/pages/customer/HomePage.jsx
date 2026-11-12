@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Search, Film, Star, Clock, Calendar, ArrowUpRight, Sparkles } from 'lucide-react';
+import { Search, Film, Star, Clock, Calendar, ArrowUpRight, Sparkles, ChevronDown, RotateCcw } from 'lucide-react';
 import { moviesApi } from '../../services/api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 
@@ -35,7 +35,14 @@ export const HomePage = () => {
     const params = new URLSearchParams();
     if (searchTitle.trim()) params.append('search', searchTitle.trim());
     if (selectedFormat) params.append('format', selectedFormat);
+    if (maxPrice) params.append('maxPrice', maxPrice);
     navigate(`/movies?${params.toString()}`);
+  };
+
+  const handleClearFilters = () => {
+    setSearchTitle('');
+    setSelectedFormat('');
+    setMaxPrice('');
   };
 
   // Deduplicate movies by normalized title so duplicate records never show up
@@ -49,12 +56,50 @@ export const HomePage = () => {
     }
   }
 
-  const nowShowing = uniqueMovies.filter(
+  const allNowShowing = uniqueMovies.filter(
     (m) => (m.status || '').toLowerCase() === 'now_showing' || !m.status
   );
-  const comingSoon = uniqueMovies.filter(
+  const allComingSoon = uniqueMovies.filter(
     (m) => (m.status || '').toLowerCase() === 'coming_soon'
   );
+
+  // Live filter for the curated grid on the homepage
+  const nowShowing = allNowShowing.filter((m) => {
+    if (searchTitle.trim()) {
+      const q = searchTitle.toLowerCase().trim();
+      const titleMatch = m.title.toLowerCase().includes(q);
+      const descMatch = m.description && m.description.toLowerCase().includes(q);
+      const genreMatch = Array.isArray(m.genre)
+        ? m.genre.some((g) => g.toLowerCase().includes(q))
+        : typeof m.genre === 'string' && m.genre.toLowerCase().includes(q);
+      const formatMatch = m.format && m.format.toLowerCase().includes(q);
+      if (!titleMatch && !descMatch && !genreMatch && !formatMatch) return false;
+    }
+    if (selectedFormat && m.format && m.format.toLowerCase() !== selectedFormat.toLowerCase()) {
+      return false;
+    }
+    if (maxPrice) {
+      const p = parseFloat(maxPrice);
+      if (!isNaN(p) && 250 > p) return false;
+    }
+    return true;
+  });
+
+  const comingSoon = allComingSoon.filter((m) => {
+    if (searchTitle.trim()) {
+      const q = searchTitle.toLowerCase().trim();
+      const titleMatch = m.title.toLowerCase().includes(q);
+      const descMatch = m.description && m.description.toLowerCase().includes(q);
+      const genreMatch = Array.isArray(m.genre)
+        ? m.genre.some((g) => g.toLowerCase().includes(q))
+        : typeof m.genre === 'string' && m.genre.toLowerCase().includes(q);
+      if (!titleMatch && !descMatch && !genreMatch) return false;
+    }
+    if (selectedFormat && m.format && m.format.toLowerCase() !== selectedFormat.toLowerCase()) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-[#f7f6f2] text-[#252824]">
@@ -125,33 +170,45 @@ export const HomePage = () => {
               />
             </div>
 
-            <div className="search-field w-full sm:w-auto sm:min-w-[170px]">
+            <div className="search-field w-full sm:w-auto sm:min-w-[170px] relative">
               <span>The Format</span>
-              <select
-                value={selectedFormat}
-                onChange={(e) => setSelectedFormat(e.target.value)}
-              >
-                <option value="">Any format</option>
-                <option value="IMAX">IMAX 3D</option>
-                <option value="4DX">4DX Experience</option>
-                <option value="3D">Digital 3D</option>
-                <option value="2D">Standard 2D</option>
-              </select>
+              <div className="relative flex items-center">
+                <select
+                  value={selectedFormat}
+                  onChange={(e) => setSelectedFormat(e.target.value)}
+                  className="appearance-none pr-6 cursor-pointer text-[13px] bg-transparent text-[#252824] focus:outline-none w-full"
+                >
+                  <option value="">Any format</option>
+                  <option value="IMAX">IMAX 3D</option>
+                  <option value="4DX">4DX Experience</option>
+                  <option value="3D">Digital 3D</option>
+                  <option value="2D">Standard 2D</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-0 pointer-events-none" />
+              </div>
             </div>
 
-            <div className="search-field w-full sm:w-auto sm:min-w-[170px]">
+            <div className="search-field w-full sm:w-auto sm:min-w-[170px] relative">
               <span>Price / Ticket</span>
-              <input
-                type="text"
-                placeholder="Up to ₹500"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-              />
+              <div className="relative flex items-center">
+                <select
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  className="appearance-none pr-6 cursor-pointer text-[13px] bg-transparent text-[#252824] focus:outline-none w-full"
+                >
+                  <option value="">Up to ₹500</option>
+                  <option value="250">Up to ₹250</option>
+                  <option value="350">Up to ₹350</option>
+                  <option value="500">Up to ₹500</option>
+                  <option value="600">Up to ₹600</option>
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-stone-500 absolute right-0 pointer-events-none" />
+              </div>
             </div>
 
             <button
               type="submit"
-              className="search-submit-btn w-full sm:w-[48px] h-[48px] mt-2 sm:mt-0"
+              className="search-submit-btn w-full sm:w-[48px] h-[48px] mt-2 sm:mt-0 flex items-center justify-center cursor-pointer active:scale-95 transition-transform"
               aria-label="Search movies"
             >
               <Search className="w-5 h-5 text-white" />
@@ -172,14 +229,42 @@ export const HomePage = () => {
               Good movies, good energy.
             </h2>
           </div>
-          <p className="text-[13px] text-[#777a72] mt-2 sm:mt-0">
-            Showing {nowShowing.length} curated releases
-          </p>
+          <div className="flex items-center gap-3">
+            {(searchTitle || selectedFormat || maxPrice) && (
+              <button
+                onClick={handleClearFilters}
+                className="text-xs font-semibold text-[#cf785b] hover:underline flex items-center gap-1"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset search</span>
+              </button>
+            )}
+            <p className="text-[13px] text-[#777a72]">
+              Showing {nowShowing.length} curated releases
+            </p>
+          </div>
         </div>
 
         {loading ? (
           <div className="py-20 flex justify-center">
             <LoadingSpinner size="lg" />
+          </div>
+        ) : nowShowing.length === 0 ? (
+          <div className="text-center py-16 bg-white border border-[#e5e3dc] rounded-2xl p-8 shadow-xs">
+            <Film className="w-10 h-10 text-stone-400 mx-auto mb-3" />
+            <h3 className="font-display text-lg font-bold text-[#252824] mb-1">
+              No screenings match your search
+            </h3>
+            <p className="text-xs text-[#777a72] mb-5">
+              We couldn't find any releases matching your title, format, or price criteria.
+            </p>
+            <button
+              onClick={handleClearFilters}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#252824] text-white text-xs font-semibold hover:bg-[#cf785b] transition-all shadow-xs"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>Reset Search Filters</span>
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">

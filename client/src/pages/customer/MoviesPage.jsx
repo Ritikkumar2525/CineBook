@@ -18,8 +18,19 @@ export const MoviesPage = () => {
   const [selectedGenre, setSelectedGenre] = useState(searchParams.get('genre') || 'all');
   const [selectedStatus, setSelectedStatus] = useState(searchParams.get('status') || 'all');
   const [selectedFormat, setSelectedFormat] = useState(searchParams.get('format') || 'all');
+  const [maxPrice, setMaxPrice] = useState(searchParams.get('maxPrice') || '');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
+
+  // Sync state whenever URL query params change (e.g. from homepage search submit)
+  useEffect(() => {
+    setSearch(searchParams.get('search') || '');
+    setSelectedGenre(searchParams.get('genre') || 'all');
+    setSelectedStatus(searchParams.get('status') || 'all');
+    setSelectedFormat(searchParams.get('format') || 'all');
+    setMaxPrice(searchParams.get('maxPrice') || '');
+    setCurrentPage(1);
+  }, [searchParams]);
 
   useEffect(() => {
     loadGenres();
@@ -27,7 +38,7 @@ export const MoviesPage = () => {
 
   useEffect(() => {
     loadMovies();
-  }, [selectedGenre, selectedStatus]);
+  }, [selectedGenre, selectedStatus, selectedFormat, search]);
 
   const loadGenres = async () => {
     try {
@@ -49,6 +60,8 @@ export const MoviesPage = () => {
       const params = {};
       if (selectedGenre !== 'all') params.genre = selectedGenre;
       if (selectedStatus !== 'all') params.status = selectedStatus;
+      if (selectedFormat !== 'all') params.format = selectedFormat;
+      if (search.trim()) params.search = search.trim();
 
       const res = await moviesApi.getAll(params);
       const data = res.data?.movies || res.data?.data || res.data || [];
@@ -71,18 +84,52 @@ export const MoviesPage = () => {
     }
   }
 
-  // Client-side filter for quick search and format
+  // Client-side filter for quick search, genre, format, and price
   const filteredMovies = uniqueMovies.filter((movie) => {
-    const matchesSearch =
-      !search ||
-      movie.title.toLowerCase().includes(search.toLowerCase()) ||
-      (movie.description && movie.description.toLowerCase().includes(search.toLowerCase()));
+    // 1. Text Search matching Title, Description, Genre, or Format
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      const titleMatch = movie.title.toLowerCase().includes(q);
+      const descMatch = movie.description && movie.description.toLowerCase().includes(q);
+      const genreMatch = Array.isArray(movie.genre)
+        ? movie.genre.some((g) => g.toLowerCase().includes(q))
+        : typeof movie.genre === 'string' && movie.genre.toLowerCase().includes(q);
+      const formatMatch = movie.format && movie.format.toLowerCase().includes(q);
+      if (!titleMatch && !descMatch && !genreMatch && !formatMatch) return false;
+    }
 
-    const matchesFormat =
-      selectedFormat === 'all' ||
-      (movie.format && movie.format.toLowerCase() === selectedFormat.toLowerCase());
+    // 2. Format filter
+    if (
+      selectedFormat !== 'all' &&
+      movie.format &&
+      movie.format.toLowerCase() !== selectedFormat.toLowerCase()
+    ) {
+      return false;
+    }
 
-    return matchesSearch && matchesFormat;
+    // 3. Status filter
+    if (
+      selectedStatus !== 'all' &&
+      movie.status &&
+      movie.status.toLowerCase() !== selectedStatus.toLowerCase()
+    ) {
+      return false;
+    }
+
+    // 4. Genre filter
+    if (selectedGenre !== 'all') {
+      const gList = Array.isArray(movie.genre) ? movie.genre : [movie.genre];
+      const hasGenre = gList.some((g) => g.toLowerCase() === selectedGenre.toLowerCase());
+      if (!hasGenre) return false;
+    }
+
+    // 5. Price filter
+    if (maxPrice) {
+      const cap = parseFloat(maxPrice);
+      if (!isNaN(cap) && 250 > cap) return false;
+    }
+
+    return true;
   });
 
   const totalPages = Math.ceil(filteredMovies.length / itemsPerPage);
@@ -129,7 +176,7 @@ export const MoviesPage = () => {
               />
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap sm:flex-nowrap">
               <select
                 value={selectedFormat}
                 onChange={(e) => setSelectedFormat(e.target.value)}
@@ -143,6 +190,18 @@ export const MoviesPage = () => {
               </select>
 
               <select
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className="px-3.5 py-2.5 rounded-lg border border-[#e5e3dc] bg-[#f7f6f2] text-[#252824] text-sm focus:outline-none focus:border-[#cf785b]"
+              >
+                <option value="">All Prices</option>
+                <option value="250">Up to ₹250</option>
+                <option value="350">Up to ₹350</option>
+                <option value="500">Up to ₹500</option>
+                <option value="600">Up to ₹600</option>
+              </select>
+
+              <select
                 value={selectedStatus}
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 className="px-3.5 py-2.5 rounded-lg border border-[#e5e3dc] bg-[#f7f6f2] text-[#252824] text-sm focus:outline-none focus:border-[#cf785b]"
@@ -151,6 +210,23 @@ export const MoviesPage = () => {
                 <option value="now_showing">Now Showing</option>
                 <option value="coming_soon">Coming Soon</option>
               </select>
+
+              {(search || selectedFormat !== 'all' || selectedStatus !== 'all' || selectedGenre !== 'all' || maxPrice) && (
+                <button
+                  onClick={() => {
+                    setSearch('');
+                    setSelectedGenre('all');
+                    setSelectedStatus('all');
+                    setSelectedFormat('all');
+                    setMaxPrice('');
+                    setSearchParams({});
+                  }}
+                  className="px-3 py-2 text-xs font-semibold text-[#cf785b] hover:bg-[#fdf5f2] rounded-lg transition-colors flex items-center gap-1 shrink-0"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Reset</span>
+                </button>
+              )}
             </div>
           </div>
 
