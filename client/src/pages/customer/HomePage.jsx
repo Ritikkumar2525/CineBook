@@ -38,10 +38,21 @@ export const HomePage = () => {
     navigate(`/movies?${params.toString()}`);
   };
 
-  const nowShowing = movies.filter(
+  // Deduplicate movies by normalized title so duplicate records never show up
+  const uniqueMovies = [];
+  const seenTitles = new Set();
+  for (const movie of movies) {
+    const normKey = (movie.title || '').trim().toLowerCase();
+    if (!seenTitles.has(normKey)) {
+      seenTitles.add(normKey);
+      uniqueMovies.push(movie);
+    }
+  }
+
+  const nowShowing = uniqueMovies.filter(
     (m) => (m.status || '').toLowerCase() === 'now_showing' || !m.status
   );
-  const comingSoon = movies.filter(
+  const comingSoon = uniqueMovies.filter(
     (m) => (m.status || '').toLowerCase() === 'coming_soon'
   );
 

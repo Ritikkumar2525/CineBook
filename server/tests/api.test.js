@@ -105,11 +105,12 @@ describe('Cinema Hall Booking System Backend API', () => {
     });
 
     it('POST /api/movies should allow admin to create a movie', async () => {
+      const uniqueTitle = `Test Movie ${Date.now()}`;
       const res = await request(app)
         .post('/api/movies')
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          title: 'Gladiator II',
+          title: uniqueTitle,
           genre: ['Action', 'Drama', 'Adventure'],
           duration: 148,
           language: 'English',
@@ -120,7 +121,12 @@ describe('Cinema Hall Booking System Backend API', () => {
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.title).toBe('Gladiator II');
+      expect(res.body.data.title).toBe(uniqueTitle);
+
+      // Clean up test movie immediately so catalog remains clean
+      if (res.body.data?._id) {
+        await mongoose.model('Movie').deleteOne({ _id: res.body.data._id });
+      }
     });
   });
 

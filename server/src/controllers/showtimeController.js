@@ -323,8 +323,10 @@ const getShowtimesByMovie = async (req, res, next) => {
       endOfDay.setHours(23, 59, 59, 999);
       query.startTime = { $gte: startOfDay, $lte: endOfDay };
     } else {
-      // By default show shows from 30 minutes ago onwards
-      query.startTime = { $gte: new Date(Date.now() - 30 * 60 * 1000) };
+      // By default show all showtimes from start of today onwards
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      query.startTime = { $gte: startOfToday };
     }
 
     const showtimes = await Showtime.find(query)
@@ -380,6 +382,9 @@ const getShowtimesByMovie = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
+      count: filteredShowtimes.length,
+      data: filteredShowtimes,
+      showtimes: filteredShowtimes,
       movie: {
         _id: movie._id,
         title: movie.title,

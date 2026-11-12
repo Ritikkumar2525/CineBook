@@ -249,7 +249,7 @@ describe('Official Acceptance Criteria Test Suite', () => {
   it('Criterion 5: The admin occupancy report matches bookings and cancellations', async () => {
     // Fetch baseline occupancy report for this showtime
     const report1 = await request(app)
-      .get('/api/dashboard/occupancy')
+      .get(`/api/dashboard/occupancy?showtimeId=${testShowtimeId}`)
       .set('Authorization', `Bearer ${adminToken}`);
 
     const showStat1 = report1.body.data.find((s) => s.showtimeId.toString() === testShowtimeId.toString());
@@ -285,7 +285,7 @@ describe('Official Acceptance Criteria Test Suite', () => {
 
     // Check report: booked seats must have increased by 1
     const report2 = await request(app)
-      .get('/api/dashboard/occupancy')
+      .get(`/api/dashboard/occupancy?showtimeId=${testShowtimeId}`)
       .set('Authorization', `Bearer ${adminToken}`);
     const showStat2 = report2.body.data.find((s) => s.showtimeId.toString() === testShowtimeId.toString());
     expect(showStat2.bookedSeats).toBe(initialBooked + 1);
@@ -299,7 +299,7 @@ describe('Official Acceptance Criteria Test Suite', () => {
 
     // Check report again: booked seats must have decreased back to initialBooked
     const report3 = await request(app)
-      .get('/api/dashboard/occupancy')
+      .get(`/api/dashboard/occupancy?showtimeId=${testShowtimeId}`)
       .set('Authorization', `Bearer ${adminToken}`);
     const showStat3 = report3.body.data.find((s) => s.showtimeId.toString() === testShowtimeId.toString());
     expect(showStat3.bookedSeats).toBe(initialBooked);

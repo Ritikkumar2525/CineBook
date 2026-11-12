@@ -99,14 +99,18 @@ const getStats = async (req, res, next) => {
  */
 const getOccupancyReport = async (req, res, next) => {
   try {
-    const { startDate, endDate, limit = 20 } = req.query;
+    const { startDate, endDate, showtimeId, limit = 200 } = req.query;
     const query = { status: { $ne: 'cancelled' } };
+
+    if (showtimeId) {
+      query._id = showtimeId;
+    }
 
     if (startDate || endDate) {
       query.startTime = {};
       if (startDate) query.startTime.$gte = new Date(startDate);
       if (endDate) query.startTime.$lte = new Date(endDate);
-    } else {
+    } else if (!showtimeId) {
       // Default to last 7 days and next 7 days
       const past = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -119,7 +123,7 @@ const getOccupancyReport = async (req, res, next) => {
         path: 'screen',
         populate: { path: 'theatre', select: 'name city' },
       })
-      .sort({ startTime: -1 })
+      .sort({ startTime: 1 })
       .limit(parseInt(limit, 10));
 
     // Calculate booked seat counts for each showtime

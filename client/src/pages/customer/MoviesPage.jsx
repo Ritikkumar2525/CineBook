@@ -60,8 +60,19 @@ export const MoviesPage = () => {
     }
   };
 
+  // Deduplicate movies by title so duplicate records never show up in the catalog
+  const uniqueMovies = [];
+  const seenTitles = new Set();
+  for (const movie of movies) {
+    const normKey = (movie.title || '').trim().toLowerCase();
+    if (!seenTitles.has(normKey)) {
+      seenTitles.add(normKey);
+      uniqueMovies.push(movie);
+    }
+  }
+
   // Client-side filter for quick search and format
-  const filteredMovies = movies.filter((movie) => {
+  const filteredMovies = uniqueMovies.filter((movie) => {
     const matchesSearch =
       !search ||
       movie.title.toLowerCase().includes(search.toLowerCase()) ||

@@ -24,6 +24,17 @@ import { moviesApi, showtimesApi, theatresApi, screensApi } from '../../services
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import toast from 'react-hot-toast';
 
+// Local date key helper (YYYY-MM-DD) avoiding UTC day-shift
+export const toLocalDateKey = (dateInput) => {
+  if (!dateInput) return '';
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const MovieDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -34,16 +45,16 @@ export const MovieDetailPage = () => {
   const [error, setError] = useState(null);
   const [selectedDateStr, setSelectedDateStr] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('ALL');
+  const [showAllUpcoming, setShowAllUpcoming] = useState(false);
   const [isGeneratingShowtimes, setIsGeneratingShowtimes] = useState(false);
 
   const dateScrollRef = useRef(null);
 
-  // Generate 12 rolling calendar dates starting from today
-  const rollingDates = Array.from({ length: 12 }, (_, i) => {
+  // Generate 14 rolling calendar dates starting from today in local time
+  const rollingDates = Array.from({ length: 14 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
-    d.setHours(0, 0, 0, 0);
-    const dateKey = d.toISOString().split('T')[0];
+    const dateKey = toLocalDateKey(d);
     const isToday = i === 0;
     const isTomorrow = i === 1;
 
@@ -77,27 +88,52 @@ export const MovieDetailPage = () => {
 
       try {
         const showtimesRes = await showtimesApi.getByMovie(id);
-        const showtimesList =
-          showtimesRes.data?.showtimes || showtimesRes.data?.data || showtimesRes.data || [];
-        const activeShowtimes = (Array.isArray(showtimesList) ? showtimesList : []).filter(
-          (st) => st.status !== 'cancelled'
-        );
+        let rawList = [];
+        if (Array.isArray(showtimesRes.data?.data)) {
+          rawList = showtimesRes.data.data;
+        } else if (Array.isArray(showtimesRes.data?.showtimes)) {
+          rawList = showtimesRes.data.showtimes;
+        } else if (Array.isArray(showtimesRes.data)) {
+          rawList = showtimesRes.data;
+        } else if (Array.isArray(showtimesRes.data?.theatres)) {
+          rawList = showtimesRes.data.theatres.flatMap((tGroup) =>
+            (tGroup.showtimes || []).map((st) => ({
+              ...st,
+              screen: {
+                ...st.screen,
+                theatre: tGroup.theatre,
+              },
+            }))
+          );
+        }
+
+        const activeShowtimes = rawList.filter((st) => st.status !== 'cancelled');
         setShowtimes(activeShowtimes);
 
-        // Default date selection: pick earliest date with showtimes, or today
-        if (activeShowtimes.length > 0) {
-          const sortedShowtimes = [...activeShowtimes].sort(
-            (a, b) => new Date(a.startTime) - new Date(b.startTime)
-          );
-          const firstDate = new Date(sortedShowtimes[0].startTime).toISOString().split('T')[0];
-          setSelectedDateStr(firstDate);
+        // Default date selection: pick today if it has shows, else earliest date with shows
+        const todayKey = toLocalDateKey(new Date());
+        const showtimesByDateTemp = activeShowtimes.reduce((acc, st) => {
+          const dk = toLocalDateKey(st.startTime);
+          if (!acc[dk]) acc[dk] = [];
+          acc[dk].push(st);
+          return acc;
+        }, {});
+
+        const availableDateKeys = Object.keys(showtimesByDateTemp)
+          .filter((dk) => showtimesByDateTemp[dk].length > 0)
+          .sort();
+
+        if (showtimesByDateTemp[todayKey] && showtimesByDateTemp[todayKey].length > 0) {
+          setSelectedDateStr(todayKey);
+        } else if (availableDateKeys.length > 0) {
+          setSelectedDateStr(availableDateKeys[0]);
         } else {
-          setSelectedDateStr(rollingDates[0].dateKey);
+          setSelectedDateStr(todayKey);
         }
       } catch (stErr) {
         console.warn('Could not load showtimes:', stErr);
         setShowtimes([]);
-        setSelectedDateStr(rollingDates[0].dateKey);
+        setSelectedDateStr(toLocalDateKey(new Date()));
       }
       setError(null);
     } catch (err) {
@@ -223,16 +259,20 @@ export const MovieDetailPage = () => {
     movie.posterUrl ||
     'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=85';
 
-  // Group showtimes by date (YYYY-MM-DD)
+  // Group showtimes by local date (YYYY-MM-DD) avoiding timezone day shifts
   const showtimesByDate = showtimes.reduce((acc, st) => {
-    const dateKey = new Date(st.startTime).toISOString().split('T')[0];
+    const dateKey = toLocalDateKey(st.startTime);
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(st);
     return acc;
   }, {});
 
+  const datesWithShows = Object.keys(showtimesByDate)
+    .filter((dk) => showtimesByDate[dk] && showtimesByDate[dk].length > 0)
+    .sort();
+
   // Showtimes on selected date
-  const rawDateShowtimes = showtimesByDate[selectedDateStr] || [];
+  const rawDateShowtimes = showAllUpcoming ? showtimes : (showtimesByDate[selectedDateStr] || []);
 
   // Filter by format if selected
   const filteredShowtimes =
@@ -409,24 +449,41 @@ export const MovieDetailPage = () => {
                   </p>
                 </div>
 
-                {/* Format Filter Pills (if multiple available) */}
-                {availableFormats.length > 2 && (
-                  <div className="flex gap-1.5 bg-white p-1 rounded-full border border-[#e5e3dc] shadow-2xs self-start">
-                    {availableFormats.map((fmt) => (
-                      <button
-                        key={fmt}
-                        onClick={() => setSelectedFormat(fmt)}
-                        className={`px-3 py-1 text-[11px] font-semibold rounded-full transition-all ${
-                          selectedFormat === fmt
-                            ? 'bg-[#252824] text-white shadow-xs'
-                            : 'text-[#777a72] hover:text-[#252824]'
-                        }`}
-                      >
-                        {fmt}
-                      </button>
-                    ))}
-                  </div>
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* All Upcoming Toggle */}
+                  {showtimes.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllUpcoming((prev) => !prev)}
+                      className={`px-3 py-1 text-[11px] font-semibold rounded-full border transition-all ${
+                        showAllUpcoming
+                          ? 'bg-[#252824] text-white border-[#252824] shadow-xs'
+                          : 'bg-white text-[#777a72] border-[#e5e3dc] hover:text-[#252824]'
+                      }`}
+                    >
+                      {showAllUpcoming ? '✓ Showing All Dates' : `All Shows (${showtimes.length})`}
+                    </button>
+                  )}
+
+                  {/* Format Filter Pills (if multiple available) */}
+                  {availableFormats.length > 2 && (
+                    <div className="flex gap-1 bg-white p-1 rounded-full border border-[#e5e3dc] shadow-2xs">
+                      {availableFormats.map((fmt) => (
+                        <button
+                          key={fmt}
+                          onClick={() => setSelectedFormat(fmt)}
+                          className={`px-3 py-1 text-[11px] font-semibold rounded-full transition-all ${
+                            selectedFormat === fmt
+                              ? 'bg-[#252824] text-white shadow-xs'
+                              : 'text-[#777a72] hover:text-[#252824]'
+                          }`}
+                        >
+                          {fmt}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Horizontally Scrollable Date Selector Strip */}
@@ -587,22 +644,71 @@ export const MovieDetailPage = () => {
                   <h4 className="font-display text-lg font-bold text-[#252824] mb-1">
                     No Showtimes Scheduled for this Date
                   </h4>
-                  <p className="text-xs text-[#777a72] max-w-md mx-auto mb-5">
-                    We don't have showtimes scheduled for {selectedDateStr}. Please try selecting another date from the strip above.
+                  <p className="text-xs text-[#777a72] max-w-md mx-auto mb-4">
+                    We don't have showtimes scheduled for {selectedDateStr}. Select an available date below to view timings:
                   </p>
 
-                  {/* 1-Click Demo Schedule Button */}
-                  <button
-                    type="button"
-                    onClick={handleGenerateDemoShowtimes}
-                    disabled={isGeneratingShowtimes}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#fdf5f2] border border-[#cf785b] text-[#cf785b] hover:bg-[#cf785b] hover:text-white text-xs font-semibold transition-all shadow-xs"
-                  >
-                    <PlusCircle className="w-4 h-4" />
-                    <span>
-                      {isGeneratingShowtimes ? 'Scheduling...' : '⚡ Generate Showtimes for this Movie'}
-                    </span>
-                  </button>
+                  {datesWithShows.length > 0 && (
+                    <div className="mb-6">
+                      <p className="text-[11px] font-semibold text-[#777a72] uppercase tracking-wider mb-2.5">
+                        Available Screening Dates for {movie.title}:
+                      </p>
+                      <div className="flex flex-wrap gap-2 justify-center max-w-lg mx-auto">
+                        {datesWithShows.slice(0, 6).map((dk) => {
+                          const count = showtimesByDate[dk].length;
+                          const [y, m, d] = dk.split('-').map(Number);
+                          const dObj = new Date(y, m - 1, d);
+                          const label = dObj.toLocaleDateString('en-US', {
+                            weekday: 'short',
+                            month: 'short',
+                            day: 'numeric',
+                          });
+                          return (
+                            <button
+                              key={dk}
+                              onClick={() => {
+                                setSelectedDateStr(dk);
+                                setShowAllUpcoming(false);
+                              }}
+                              className="px-3.5 py-2 rounded-xl bg-[#252824] hover:bg-[#cf785b] text-white text-xs font-semibold transition-all shadow-xs flex items-center gap-1.5"
+                            >
+                              <Calendar className="w-3.5 h-3.5 text-[#ffd25d]" />
+                              <span>{label}</span>
+                              <span className="bg-white/20 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
+                                {count} {count === 1 ? 'show' : 'shows'}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex flex-wrap gap-3 justify-center items-center">
+                    {showtimes.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllUpcoming(true)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#252824] text-white text-xs font-semibold transition-all shadow-xs"
+                      >
+                        <span>View All {showtimes.length} Upcoming Shows</span>
+                        <ArrowUpRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+
+                    {/* 1-Click Demo Schedule Button */}
+                    <button
+                      type="button"
+                      onClick={handleGenerateDemoShowtimes}
+                      disabled={isGeneratingShowtimes}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#fdf5f2] border border-[#cf785b] text-[#cf785b] hover:bg-[#cf785b] hover:text-white text-xs font-semibold transition-all shadow-xs"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      <span>
+                        {isGeneratingShowtimes ? 'Scheduling...' : '⚡ Generate Showtimes for this Movie'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

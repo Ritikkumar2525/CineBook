@@ -306,112 +306,42 @@ const seedData = async () => {
     const [mInception, mInterstellar, mDarkKnight, mOppenheimer, mDune, mSpiderman, mGladiator] = movies;
     console.log(`Movies created: ${movies.map((m) => m.title).join(', ')}`);
 
-    // 5. Create 10 Showtimes spread across the next 7 days
+    // 5. Create Rich Multi-Day Showtimes for all movies starting from TODAY
     console.log('Creating showtimes...');
     const now = new Date();
-    const addDays = (d, days) => new Date(d.getTime() + days * 24 * 60 * 60 * 1000);
-    const setTime = (d, h, m) => {
-      const copy = new Date(d);
-      copy.setHours(h, m, 0, 0);
-      return copy;
-    };
-
-    const showtimeData = [
-      // Tomorrow (Day 1)
-      {
-        movie: mInception._id,
-        screen: screenMum1._id,
-        startTime: setTime(addDays(now, 1), 10, 0),
-        endTime: setTime(addDays(now, 1), 12, 45),
-      },
-      {
-        movie: mOppenheimer._id,
-        screen: screenMum1._id,
-        startTime: setTime(addDays(now, 1), 14, 0),
-        endTime: setTime(addDays(now, 1), 17, 15),
-      },
-      {
-        movie: mInterstellar._id,
-        screen: screenMum1._id,
-        startTime: setTime(addDays(now, 1), 18, 30),
-        endTime: setTime(addDays(now, 1), 21, 30),
-      },
-      {
-        movie: mDarkKnight._id,
-        screen: screenMum2._id,
-        startTime: setTime(addDays(now, 1), 11, 30),
-        endTime: setTime(addDays(now, 1), 14, 15),
-      },
-      {
-        movie: mSpiderman._id,
-        screen: screenMum2._id,
-        startTime: setTime(addDays(now, 1), 15, 30),
-        endTime: setTime(addDays(now, 1), 18, 0),
-      },
-      {
-        movie: mGladiator._id,
-        screen: screenMum1._id,
-        startTime: setTime(addDays(now, 1), 19, 0),
-        endTime: setTime(addDays(now, 1), 21, 45),
-      },
-      {
-        movie: mGladiator._id,
-        screen: screenMum2._id,
-        startTime: setTime(addDays(now, 1), 21, 30),
-        endTime: setTime(addDays(now, 1), 23, 59),
-      },
-      // Day 2
-      {
-        movie: mDune._id,
-        screen: screenDel1._id,
-        startTime: setTime(addDays(now, 2), 11, 0),
-        endTime: setTime(addDays(now, 2), 14, 0),
-      },
-      {
-        movie: mInception._id,
-        screen: screenDel1._id,
-        startTime: setTime(addDays(now, 2), 15, 0),
-        endTime: setTime(addDays(now, 2), 17, 45),
-      },
-      {
-        movie: mInterstellar._id,
-        screen: screenDel2._id,
-        startTime: setTime(addDays(now, 2), 13, 0),
-        endTime: setTime(addDays(now, 2), 16, 0),
-      },
-      {
-        movie: mGladiator._id,
-        screen: screenDel1._id,
-        startTime: setTime(addDays(now, 2), 18, 30),
-        endTime: setTime(addDays(now, 2), 21, 15),
-      },
-      // Day 3
-      {
-        movie: mOppenheimer._id,
-        screen: screenMum1._id,
-        startTime: setTime(addDays(now, 3), 13, 30),
-        endTime: setTime(addDays(now, 3), 16, 45),
-      },
-      {
-        movie: mGladiator._id,
-        screen: screenMum1._id,
-        startTime: setTime(addDays(now, 3), 17, 30),
-        endTime: setTime(addDays(now, 3), 20, 15),
-      },
-      // Day 4
-      {
-        movie: mDune._id,
-        screen: screenDel1._id,
-        startTime: setTime(addDays(now, 4), 18, 0),
-        endTime: setTime(addDays(now, 4), 21, 0),
-      },
-      {
-        movie: mGladiator._id,
-        screen: screenDel2._id,
-        startTime: setTime(addDays(now, 4), 20, 0),
-        endTime: setTime(addDays(now, 4), 22, 45),
-      },
+    const timeSlots = [
+      { hour: 10, minute: 0 },
+      { hour: 13, minute: 30 },
+      { hour: 17, minute: 0 },
+      { hour: 20, minute: 30 },
     ];
+
+    const showtimeData = [];
+    for (let day = 0; day <= 6; day++) {
+      const targetDate = new Date(now);
+      targetDate.setDate(targetDate.getDate() + day);
+
+      screens.forEach((screen, screenIdx) => {
+        timeSlots.forEach((slot, slotIdx) => {
+          const movieIndex = (day * 2 + screenIdx + slotIdx) % movies.length;
+          const movie = movies[movieIndex];
+
+          const startTime = new Date(targetDate);
+          startTime.setHours(slot.hour, slot.minute, 0, 0);
+
+          const duration = movie.duration || 140;
+          const endTime = new Date(startTime.getTime() + duration * 60 * 1000);
+
+          showtimeData.push({
+            movie: movie._id,
+            screen: screen._id,
+            startTime,
+            endTime,
+            status: 'scheduled',
+          });
+        });
+      });
+    }
 
     const showtimes = await Showtime.create(showtimeData);
     console.log(`Created ${showtimes.length} showtimes.`);
