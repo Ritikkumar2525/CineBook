@@ -386,4 +386,70 @@ describe('Cinema Hall Booking System Backend API', () => {
       expect(res.body.logs.length).toBeGreaterThan(0);
     });
   });
+
+  describe('In-Seat Meals & Snacks Routes', () => {
+    it('GET /api/meals should return complete dining catalog and categories', async () => {
+      const res = await request(app).get('/api/meals');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.length).toBeGreaterThan(0);
+      expect(res.body.categories.length).toBeGreaterThan(0);
+    });
+
+    it('GET /api/meals should filter items by category', async () => {
+      const res = await request(app).get('/api/meals?category=Popcorn+%26+Nachos');
+      expect(res.status).toBe(200);
+      expect(res.body.success).toBe(true);
+      res.body.data.forEach((item) => {
+        expect(item.category).toBe('Popcorn & Nachos');
+      });
+    });
+
+    it('POST /api/bookings should successfully confirm booking with in-seat meal orders', async () => {
+      // Find a fresh available future showtime
+      const showtimesRes = await request(app).get('/api/showtimes');
+      const future = showtimesRes.body.data.find((s) => new Date(s.startTime) > new Date());
+      const showId = future._id;
+
+      const availRes = await request(app).get(`/api/showtimes/${showId}`);
+      let mealSeat = null;
+      for (const cat of availRes.body.data.seatCategories) {
+        for (const row of cat.rows) {
+          for (const s of row.seats) {
+            if (s.status === 'available') {
+              mealSeat = s.seatId;
+              break;
+            }
+          }
+          if (mealSeat) break;
+        }
+        if (mealSeat) break;
+      }
+
+      // Hold the seat
+      await request(app)
+        .post('/api/bookings/hold')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({ showtimeId: showId, seats: [mealSeat] });
+
+      // Book with in-seat meals
+      const res = await request(app)
+        .post('/api/bookings')
+        .set('Authorization', `Bearer ${customerToken}`)
+        .send({
+          showtimeId: showId,
+          seats: [mealSeat],
+          mealOrders: [
+            { itemId: 'popcorn-salted-reg', quantity: 1 },
+            { itemId: 'drink-cola-fountain', quantity: 2 },
+          ],
+        });
+
+      expect(res.status).toBe(201);
+      expect(res.body.success).toBe(true);
+      expect(res.body.data.mealOrders.length).toBe(2);
+      expect(res.body.data.mealTotal).toBe(180 + 120 * 2); // 420
+      expect(res.body.data.totalAmount).toBeGreaterThan(res.body.data.mealTotal);
+    });
+  });
 });

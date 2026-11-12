@@ -223,6 +223,46 @@ export const BookingConfirmationPage = () => {
               </div>
             </div>
 
+            {/* In-Seat Meal Orders Section (if meals ordered) */}
+            {booking.mealOrders && booking.mealOrders.length > 0 && (
+              <div className="pt-4 border-t border-[#e5e3dc] bg-[#fdfcf9] -mx-6 sm:-mx-8 px-6 sm:px-8 py-4 border-b">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[10px] uppercase font-bold tracking-wider text-[#cf785b] flex items-center gap-1.5">
+                    <span>🍿 In-Seat Dining Service</span>
+                    <span className="text-[9px] px-1.5 py-0.2 bg-[#ffd25d]/40 rounded text-stone-900 font-sans font-semibold">
+                      Deliver to Seat
+                    </span>
+                  </span>
+                  <span className="text-xs font-bold text-[#252824]">
+                    Subtotal: ₹{booking.mealTotal || 0}.00
+                  </span>
+                </div>
+
+                <div className="space-y-1.5">
+                  {booking.mealOrders.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between text-xs text-[#555850]"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span className="w-5 h-5 rounded-full bg-white border border-[#e5e3dc] flex items-center justify-center font-bold text-[10px] text-[#cf785b]">
+                          {item.quantity}×
+                        </span>
+                        <span className="font-medium text-[#252824]">{item.name}</span>
+                      </span>
+                      <span className="font-semibold text-[#252824]">
+                        ₹{item.price * item.quantity}.00
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-[10px] text-[#777a72] mt-2.5 italic">
+                  * Order verified for delivery to Row {booking.seats?.[0]?.seatId?.split('-')?.[0]} prior to the interval.
+                </p>
+              </div>
+            )}
+
             {/* Scannable QR Code Pass */}
             <div className="pt-4 border-t border-[#e5e3dc] flex flex-col sm:flex-row items-center justify-between gap-6 p-4 rounded-xl bg-[#f7f6f2] border border-[#e5e3dc]">
               <div>

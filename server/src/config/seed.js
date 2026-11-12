@@ -288,9 +288,22 @@ const seedData = async () => {
         releaseDate: new Date('2023-06-02'),
         status: 'now_showing',
       },
+      {
+        title: 'Gladiator II',
+        description:
+          'Years after witnessing the death of the revered hero Maximus at the hands of his uncle, Lucius must enter the Colosseum after his home is conquered by the tyrannical Emperors who now lead Rome with an iron fist. With rage in his heart and the future of the Empire at stake, Lucius must look to his past to find strength and honor to return the glory of Rome to its people.',
+        genre: ['Action', 'Drama', 'Adventure'],
+        duration: 148,
+        language: 'English',
+        format: 'IMAX',
+        posterUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?w=800&auto=format&fit=crop&q=80',
+        rating: 'A',
+        releaseDate: new Date('2024-11-15'),
+        status: 'now_showing',
+      },
     ]);
 
-    const [mInception, mInterstellar, mDarkKnight, mOppenheimer, mDune, mSpiderman] = movies;
+    const [mInception, mInterstellar, mDarkKnight, mOppenheimer, mDune, mSpiderman, mGladiator] = movies;
     console.log(`Movies created: ${movies.map((m) => m.title).join(', ')}`);
 
     // 5. Create 10 Showtimes spread across the next 7 days
@@ -335,6 +348,18 @@ const seedData = async () => {
         startTime: setTime(addDays(now, 1), 15, 30),
         endTime: setTime(addDays(now, 1), 18, 0),
       },
+      {
+        movie: mGladiator._id,
+        screen: screenMum1._id,
+        startTime: setTime(addDays(now, 1), 19, 0),
+        endTime: setTime(addDays(now, 1), 21, 45),
+      },
+      {
+        movie: mGladiator._id,
+        screen: screenMum2._id,
+        startTime: setTime(addDays(now, 1), 21, 30),
+        endTime: setTime(addDays(now, 1), 23, 59),
+      },
       // Day 2
       {
         movie: mDune._id,
@@ -354,6 +379,12 @@ const seedData = async () => {
         startTime: setTime(addDays(now, 2), 13, 0),
         endTime: setTime(addDays(now, 2), 16, 0),
       },
+      {
+        movie: mGladiator._id,
+        screen: screenDel1._id,
+        startTime: setTime(addDays(now, 2), 18, 30),
+        endTime: setTime(addDays(now, 2), 21, 15),
+      },
       // Day 3
       {
         movie: mOppenheimer._id,
@@ -361,12 +392,24 @@ const seedData = async () => {
         startTime: setTime(addDays(now, 3), 13, 30),
         endTime: setTime(addDays(now, 3), 16, 45),
       },
+      {
+        movie: mGladiator._id,
+        screen: screenMum1._id,
+        startTime: setTime(addDays(now, 3), 17, 30),
+        endTime: setTime(addDays(now, 3), 20, 15),
+      },
       // Day 4
       {
         movie: mDune._id,
         screen: screenDel1._id,
         startTime: setTime(addDays(now, 4), 18, 0),
         endTime: setTime(addDays(now, 4), 21, 0),
+      },
+      {
+        movie: mGladiator._id,
+        screen: screenDel2._id,
+        startTime: setTime(addDays(now, 4), 20, 0),
+        endTime: setTime(addDays(now, 4), 22, 45),
       },
     ];
 

@@ -268,6 +268,24 @@ export const MyBookingsPage = () => {
                           ))}
                         </div>
 
+                        {b.mealOrders && b.mealOrders.length > 0 && (
+                          <div className="pt-2 border-t border-[#f0efe9]">
+                            <span className="text-[#cf785b] font-bold block mb-1">
+                              🍿 In-Seat Meals Ordered (₹{b.mealTotal || 0}.00):
+                            </span>
+                            <div className="flex flex-wrap gap-1.5">
+                              {b.mealOrders.map((m, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2.5 py-0.5 rounded-full bg-[#fdf5f2] border border-[#cf785b]/30 text-[#252824] text-[11px] font-medium"
+                                >
+                                  {m.quantity}× {m.name} (₹{m.price * m.quantity})
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         {b.cancelledAt && (
                           <p className="text-[#cf785b]">
                             Cancelled on: {new Date(b.cancelledAt).toLocaleString()} · Refund Status: Completed

@@ -96,6 +96,11 @@ export const bookingsApi = {
   getById: (id) => api.get(`/bookings/${id}`),
 };
 
+// Meals Endpoints
+export const mealsApi = {
+  getCatalog: () => api.get('/meals'),
+};
+
 // Dashboard Endpoints
 export const dashboardApi = {
   getStats: () => api.get('/dashboard/stats'),

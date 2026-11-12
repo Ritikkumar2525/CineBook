@@ -5,6 +5,7 @@ const Booking = require('../models/Booking');
 const SeatHold = require('../models/SeatHold');
 const Showtime = require('../models/Showtime');
 const auditService = require('./auditService');
+const mealCatalog = require('../config/mealCatalog');
 const { runInTransaction } = require('../utils/transaction');
 
 /**
@@ -26,10 +27,28 @@ const generateBookingRef = () => {
  * @param {string} userId
  * @param {string} showtimeId
  * @param {string[]} seatIds
- * @param {string} [ipAddress]
+ * @param {Array<{itemId: string, quantity: number}>|string} [mealOrdersOrIp]
+ * @param {string|Array} [maybeIp]
  * @returns {Promise<Booking>}
  */
-const createBooking = async (userId, showtimeId, seatIds, ipAddress = null) => {
+const createBooking = async (
+  userId,
+  showtimeId,
+  seatIds,
+  mealOrdersOrIp = [],
+  maybeIp = null
+) => {
+  let mealOrders = [];
+  let ipAddress = null;
+
+  if (Array.isArray(mealOrdersOrIp)) {
+    mealOrders = mealOrdersOrIp;
+    ipAddress = maybeIp;
+  } else if (typeof mealOrdersOrIp === 'string') {
+    ipAddress = mealOrdersOrIp;
+    mealOrders = Array.isArray(maybeIp) ? maybeIp : [];
+  }
+
   if (!seatIds || !Array.isArray(seatIds) || seatIds.length === 0) {
     const err = new Error('Please provide at least one seat to book');
     err.statusCode = 400;
@@ -92,6 +111,32 @@ const createBooking = async (userId, showtimeId, seatIds, ipAddress = null) => {
     totalAmount += catInfo.price;
   }
 
+  // Calculate meal orders if provided
+  const mealCatalog = require('../config/mealCatalog');
+  const mealLookup = new Map(mealCatalog.map((m) => [m.id, m]));
+  const formattedMealOrders = [];
+  let mealTotal = 0;
+
+  if (Array.isArray(mealOrders) && mealOrders.length > 0) {
+    for (const item of mealOrders) {
+      const catalogItem = mealLookup.get(item.itemId);
+      if (catalogItem) {
+        const qty = Math.max(1, Math.min(10, parseInt(item.quantity, 10) || 1));
+        const price = catalogItem.price;
+        formattedMealOrders.push({
+          itemId: catalogItem.id,
+          name: catalogItem.name,
+          category: catalogItem.category,
+          quantity: qty,
+          price: price,
+        });
+        mealTotal += price * qty;
+      }
+    }
+  }
+
+  totalAmount += mealTotal;
+
   return await runInTransaction(async (session) => {
     // Verify holds exist and belong to user and not expired
     const activeHoldsQuery = SeatHold.find({
@@ -143,6 +188,8 @@ const createBooking = async (userId, showtimeId, seatIds, ipAddress = null) => {
           user: userId,
           showtime: showtimeId,
           seats: bookedSeatsData,
+          mealOrders: formattedMealOrders,
+          mealTotal,
           totalAmount,
           bookingRef,
           qrCode,
@@ -175,6 +222,8 @@ const createBooking = async (userId, showtimeId, seatIds, ipAddress = null) => {
         totalAmount,
         seatCount: seatIds.length,
         seats: seatIds,
+        mealOrdersCount: formattedMealOrders.length,
+        mealTotal,
         showtimeId,
       },
       ipAddress

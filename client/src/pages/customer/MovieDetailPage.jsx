@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Film,
   Calendar,
@@ -11,10 +11,18 @@ import {
   Ticket,
   ArrowUpRight,
   ShieldCheck,
-  Check
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  UtensilsCrossed,
+  Sparkles,
+  Volume2,
+  Tv,
+  PlusCircle
 } from 'lucide-react';
-import { moviesApi, showtimesApi } from '../../services/api';
+import { moviesApi, showtimesApi, theatresApi, screensApi } from '../../services/api';
 import LoadingSpinner from '../../components/ui/LoadingSpinner';
+import toast from 'react-hot-toast';
 
 export const MovieDetailPage = () => {
   const { id } = useParams();
@@ -24,7 +32,37 @@ export const MovieDetailPage = () => {
   const [showtimes, setShowtimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedDateStr, setSelectedDateStr] = useState('');
+  const [selectedFormat, setSelectedFormat] = useState('ALL');
+  const [isGeneratingShowtimes, setIsGeneratingShowtimes] = useState(false);
+
+  const dateScrollRef = useRef(null);
+
+  // Generate 12 rolling calendar dates starting from today
+  const rollingDates = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() + i);
+    d.setHours(0, 0, 0, 0);
+    const dateKey = d.toISOString().split('T')[0];
+    const isToday = i === 0;
+    const isTomorrow = i === 1;
+
+    let dayLabel = d.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
+    if (isToday) dayLabel = 'TODAY';
+    else if (isTomorrow) dayLabel = 'TOMORROW';
+
+    return {
+      dateKey,
+      dayLabel,
+      dayNumber: d.getDate(),
+      monthLabel: d.toLocaleDateString('en-US', { month: 'short' }),
+      fullFormatted: d.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      }),
+    };
+  });
 
   useEffect(() => {
     fetchMovieAndShowtimes();
@@ -46,13 +84,20 @@ export const MovieDetailPage = () => {
         );
         setShowtimes(activeShowtimes);
 
+        // Default date selection: pick earliest date with showtimes, or today
         if (activeShowtimes.length > 0) {
-          const firstDate = new Date(activeShowtimes[0].startTime).toISOString().split('T')[0];
-          setSelectedDate(firstDate);
+          const sortedShowtimes = [...activeShowtimes].sort(
+            (a, b) => new Date(a.startTime) - new Date(b.startTime)
+          );
+          const firstDate = new Date(sortedShowtimes[0].startTime).toISOString().split('T')[0];
+          setSelectedDateStr(firstDate);
+        } else {
+          setSelectedDateStr(rollingDates[0].dateKey);
         }
       } catch (stErr) {
         console.warn('Could not load showtimes:', stErr);
         setShowtimes([]);
+        setSelectedDateStr(rollingDates[0].dateKey);
       }
       setError(null);
     } catch (err) {
@@ -60,6 +105,89 @@ export const MovieDetailPage = () => {
       setError('Movie not found or failed to load.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 1-Click Demo Generator: creates showtimes if a movie has none (e.g. for Gladiator II)
+  const handleGenerateDemoShowtimes = async () => {
+    try {
+      setIsGeneratingShowtimes(true);
+      toast.loading('Scheduling upcoming showtimes for this movie...', { id: 'demo-st' });
+
+      // Fetch existing screens
+      const screensRes = await screensApi.getAll();
+      const screensList = screensRes.data?.data || screensRes.data?.screens || [];
+
+      if (!screensList || screensList.length === 0) {
+        toast.error('No screens configured yet. Please configure screens in admin first.', {
+          id: 'demo-st',
+        });
+        return;
+      }
+
+      const today = new Date();
+      const newShowtimesToCreate = [];
+
+      // Create 6 showtimes spread over today, tomorrow and day after
+      for (let dayOffset = 0; dayOffset <= 2; dayOffset++) {
+        const screen1 = screensList[0];
+        const screen2 = screensList[1] || screensList[0];
+
+        const t1 = new Date(today);
+        t1.setDate(t1.getDate() + dayOffset);
+        t1.setHours(15, 30, 0, 0);
+
+        const end1 = new Date(t1);
+        end1.setMinutes(end1.getMinutes() + (movie?.duration || 140));
+
+        const t2 = new Date(today);
+        t2.setDate(t2.getDate() + dayOffset);
+        t2.setHours(19, 0, 0, 0);
+
+        const end2 = new Date(t2);
+        end2.setMinutes(end2.getMinutes() + (movie?.duration || 140));
+
+        newShowtimesToCreate.push({
+          movie: movie._id,
+          screen: screen1._id,
+          startTime: t1.toISOString(),
+          endTime: end1.toISOString(),
+          status: 'scheduled',
+        });
+
+        newShowtimesToCreate.push({
+          movie: movie._id,
+          screen: screen2._id,
+          startTime: t2.toISOString(),
+          endTime: end2.toISOString(),
+          status: 'scheduled',
+        });
+      }
+
+      for (const st of newShowtimesToCreate) {
+        try {
+          await showtimesApi.create(st);
+        } catch (e) {
+          console.warn('Showtime creation skipped/collided:', e.message);
+        }
+      }
+
+      toast.success('Upcoming showtimes scheduled successfully!', { id: 'demo-st' });
+      await fetchMovieAndShowtimes();
+    } catch (err) {
+      console.error('Failed to create demo showtimes:', err);
+      toast.error('Could not schedule showtimes automatically.', { id: 'demo-st' });
+    } finally {
+      setIsGeneratingShowtimes(false);
+    }
+  };
+
+  const scrollDates = (direction) => {
+    if (dateScrollRef.current) {
+      dateScrollRef.current.scrollBy({
+        left: direction === 'left' ? -180 : 180,
+        behavior: 'smooth',
+      });
     }
   };
 
@@ -103,16 +231,42 @@ export const MovieDetailPage = () => {
     return acc;
   }, {});
 
-  const availableDates = Object.keys(showtimesByDate).sort();
-  const activeDate =
-    selectedDate && availableDates.includes(selectedDate)
-      ? selectedDate
-      : availableDates[0] || '';
+  // Showtimes on selected date
+  const rawDateShowtimes = showtimesByDate[selectedDateStr] || [];
 
-  const activeShowtimes = showtimesByDate[activeDate] || [];
+  // Filter by format if selected
+  const filteredShowtimes =
+    selectedFormat === 'ALL'
+      ? rawDateShowtimes
+      : rawDateShowtimes.filter((st) => {
+          const fmt = (st.screen?.screenType || movie.format || '').toUpperCase();
+          return fmt.includes(selectedFormat.toUpperCase());
+        });
+
+  // Extract formats present for pill filter
+  const availableFormats = [
+    'ALL',
+    ...Array.from(
+      new Set(
+        showtimes
+          .map((st) => (st.screen?.screenType || movie.format || '').toUpperCase())
+          .filter(Boolean)
+      )
+    ),
+  ];
+
+  // Dynamic pricing breakdown from the first showtime's screen
+  const sampleScreen = showtimes[0]?.screen;
+  const seatCategories = sampleScreen?.seatCategories || [
+    { name: 'Silver Tier', price: 250 },
+    { name: 'Gold Executive', price: 350 },
+    { name: 'Platinum VIP Recliner', price: 450 },
+  ];
+
+  const lowestPrice = Math.min(...seatCategories.map((c) => c.price));
 
   return (
-    <div className="min-h-screen bg-[#f7f6f2] text-[#252824] py-10 md:py-16">
+    <div className="min-h-screen bg-[#f7f6f2] text-[#252824] py-8 md:py-14 select-none">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Navigation Breadcrumb */}
         <Link
@@ -137,16 +291,17 @@ export const MovieDetailPage = () => {
 
           <div className="text-left md:text-right text-xs text-[#777a72] leading-relaxed">
             <p className="font-semibold text-sm text-[#252824]">
-              {movie.format || 'IMAX 3D'} · {movie.language}
+              {movie.format || 'IMAX 3D'} · {movie.language || 'English'}
             </p>
             <p>
-              {movie.duration} minutes · Certificate {movie.rating || 'UA'}
+              {Math.floor(movie.duration / 60)}h {movie.duration % 60}m · Certificate{' '}
+              {movie.rating || 'UA'}
             </p>
           </div>
         </div>
 
-        {/* StayBnb Visual Gallery */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12 rounded-xl overflow-hidden shadow-card">
+        {/* Visual Gallery */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10 rounded-2xl overflow-hidden shadow-card">
           <div className="md:col-span-2 aspect-[16/9] md:aspect-auto h-[320px] md:h-[420px] bg-[#e7e5df]">
             <img
               src={poster}
@@ -155,21 +310,21 @@ export const MovieDetailPage = () => {
             />
           </div>
           <div className="hidden md:flex flex-col gap-4 h-[420px]">
-            <div className="h-1/2 bg-[#e7e5df] rounded-none overflow-hidden relative">
+            <div className="h-1/2 bg-[#e7e5df] overflow-hidden relative group">
               <img
                 src="https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?auto=format&fit=crop&w=600&q=80"
-                alt="Cinema Hall"
-                className="w-full h-full object-cover"
+                alt="Cinema Hall Auditorium"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <span className="absolute bottom-3 left-3 px-2 py-0.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-semibold rounded">
                 Auditorium Experience
               </span>
             </div>
-            <div className="h-1/2 bg-[#e7e5df] rounded-none overflow-hidden relative">
+            <div className="h-1/2 bg-[#e7e5df] overflow-hidden relative group">
               <img
                 src="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=600&q=80"
-                alt="Screening Room"
-                className="w-full h-full object-cover"
+                alt="Luxury Recliner Tier"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <span className="absolute bottom-3 left-3 px-2 py-0.5 bg-black/60 backdrop-blur-sm text-white text-[10px] font-semibold rounded">
                 Luxury Recliner Tier
@@ -178,9 +333,47 @@ export const MovieDetailPage = () => {
           </div>
         </div>
 
+        {/* In-Seat Cinema Dining & Snack Feature Bar */}
+        <div className="mb-10 bg-gradient-to-r from-[#252824] via-[#2f352e] to-[#252824] text-white rounded-2xl p-5 sm:p-6 shadow-md border border-[#3b423a] flex flex-col sm:flex-row items-center justify-between gap-5">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#ffd25d]/20 border border-[#ffd25d]/40 flex items-center justify-center shrink-0 text-2xl">
+              🍿
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-[#ffd25d] text-stone-900 px-2 py-0.5 rounded-full">
+                  New Feature
+                </span>
+                <h4 className="font-display text-base sm:text-lg font-bold text-white">
+                  In-Seat Dining & Snacks Delivery
+                </h4>
+              </div>
+              <p className="text-xs text-stone-300 mt-1 max-w-xl">
+                Skip concession lines! Order fresh caramel popcorn, warm nachos, burgers, and chilled drinks during seat selection. Delivered straight to your seat before the interval.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-[11px] font-medium text-stone-300 hidden md:inline">
+              Available at checkout
+            </span>
+            <div className="flex -space-x-1">
+              {['🍿', '🧀', '🍔', '🥤'].map((emoji, idx) => (
+                <span
+                  key={idx}
+                  className="w-8 h-8 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-sm shadow-xs"
+                >
+                  {emoji}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Main 2-Column Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Left Column: Synopsis & Showtime Scheduler */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
+          {/* Left Column: Synopsis & Dynamic Showtime Scheduler */}
           <div className="lg:col-span-2 space-y-10">
             {/* Synopsis */}
             <div>
@@ -206,154 +399,265 @@ export const MovieDetailPage = () => {
 
             {/* Showtime Selection Section */}
             <div className="pt-6 border-t border-[#e5e3dc]">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
                 <div>
                   <h3 className="font-display text-2xl font-bold text-[#252824]">
-                    Available Showtimes
+                    Select Date & Showtimes
                   </h3>
                   <p className="text-xs text-[#777a72] mt-0.5">
-                    Select a date and auditorium to reserve your seats.
+                    Choose your preferred screening date, theatre auditorium, and experience.
                   </p>
                 </div>
-              </div>
 
-              {/* Date Selector Tabs */}
-              {availableDates.length > 0 ? (
-                <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-none mb-6">
-                  {availableDates.map((dateStr) => {
-                    const d = new Date(dateStr + 'T00:00:00');
-                    const isSelected = dateStr === activeDate;
-                    return (
+                {/* Format Filter Pills (if multiple available) */}
+                {availableFormats.length > 2 && (
+                  <div className="flex gap-1.5 bg-white p-1 rounded-full border border-[#e5e3dc] shadow-2xs self-start">
+                    {availableFormats.map((fmt) => (
                       <button
-                        key={dateStr}
-                        onClick={() => setSelectedDate(dateStr)}
-                        className={`px-4 py-3 rounded-lg border text-left transition-all min-w-[120px] ${
-                          isSelected
-                            ? 'bg-[#252824] border-[#252824] text-white shadow-sm'
-                            : 'bg-white border-[#e5e3dc] text-[#252824] hover:border-[#cf785b]'
+                        key={fmt}
+                        onClick={() => setSelectedFormat(fmt)}
+                        className={`px-3 py-1 text-[11px] font-semibold rounded-full transition-all ${
+                          selectedFormat === fmt
+                            ? 'bg-[#252824] text-white shadow-xs'
+                            : 'text-[#777a72] hover:text-[#252824]'
                         }`}
                       >
-                        <span className="block text-[10px] uppercase font-bold tracking-wider opacity-70">
-                          {d.toLocaleDateString('en-US', { weekday: 'short' })}
+                        {fmt}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Horizontally Scrollable Date Selector Strip */}
+              <div className="relative mb-6">
+                {/* Scroll Left Button */}
+                <button
+                  onClick={() => scrollDates('left')}
+                  className="absolute -left-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white border border-[#e5e3dc] text-stone-700 shadow-sm flex items-center justify-center hover:bg-[#f7f6f2] transition"
+                  aria-label="Scroll dates left"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {/* Scrollable Container */}
+                <div
+                  ref={dateScrollRef}
+                  className="flex gap-2.5 overflow-x-auto no-scrollbar scroll-smooth py-1 px-2 select-none"
+                >
+                  {rollingDates.map((item) => {
+                    const isSelected = item.dateKey === selectedDateStr;
+                    const dateShowtimesCount = (showtimesByDate[item.dateKey] || []).length;
+                    const hasShows = dateShowtimesCount > 0;
+
+                    return (
+                      <button
+                        key={item.dateKey}
+                        onClick={() => setSelectedDateStr(item.dateKey)}
+                        className={`flex flex-col items-center justify-center min-w-[90px] sm:min-w-[100px] py-2.5 px-3 rounded-2xl border transition-all duration-200 shrink-0 ${
+                          isSelected
+                            ? 'bg-[#252824] border-[#252824] text-white shadow-md scale-[1.02]'
+                            : hasShows
+                            ? 'bg-white border-[#e5e3dc] text-[#252824] hover:border-[#cf785b] hover:shadow-xs'
+                            : 'bg-white/60 border-[#e5e3dc]/70 text-stone-400 hover:border-stone-400'
+                        }`}
+                      >
+                        <span
+                          className={`text-[10px] font-bold uppercase tracking-wider ${
+                            isSelected
+                              ? 'text-[#ffd25d]'
+                              : hasShows
+                              ? 'text-[#777a72]'
+                              : 'text-stone-400'
+                          }`}
+                        >
+                          {item.dayLabel}
                         </span>
-                        <span className="block text-sm font-bold font-display mt-0.5">
-                          {d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+
+                        <span className="font-display text-lg font-bold mt-0.5 leading-tight">
+                          {item.dayNumber}{' '}
+                          <span className="text-xs font-normal opacity-80">
+                            {item.monthLabel}
+                          </span>
+                        </span>
+
+                        {/* Shows indicator dot/count */}
+                        <span
+                          className={`text-[9px] font-semibold mt-1 px-1.5 py-0.2 rounded-full ${
+                            isSelected
+                              ? 'bg-white/20 text-white'
+                              : hasShows
+                              ? 'bg-[#e5eae4] text-[#344638]'
+                              : 'bg-stone-100 text-stone-400'
+                          }`}
+                        >
+                          {hasShows ? `${dateShowtimesCount} show${dateShowtimesCount > 1 ? 's' : ''}` : 'No shows'}
                         </span>
                       </button>
                     );
                   })}
                 </div>
+
+                {/* Scroll Right Button */}
+                <button
+                  onClick={() => scrollDates('right')}
+                  className="absolute -right-3 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full bg-white border border-[#e5e3dc] text-stone-700 shadow-sm flex items-center justify-center hover:bg-[#f7f6f2] transition"
+                  aria-label="Scroll dates right"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Showtimes List for Selected Date */}
+              {filteredShowtimes.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredShowtimes.map((st) => {
+                    const startTime = new Date(st.startTime);
+                    const endTime = new Date(st.endTime);
+                    const theatreName = st.screen?.theatre?.name || 'Premier Multiplex';
+                    const screenName = st.screen?.name || 'Screen 1';
+                    const screenType = st.screen?.screenType || 'Standard';
+                    const city = st.screen?.theatre?.city || '';
+
+                    return (
+                      <div
+                        key={st._id}
+                        className="p-5 sm:p-6 rounded-2xl bg-white border border-[#e5e3dc] shadow-xs hover:border-[#cf785b] hover:shadow-card transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-5"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2.5 flex-wrap">
+                            <span className="font-display font-bold text-base sm:text-lg text-[#252824]">
+                              {theatreName}
+                            </span>
+                            {city && (
+                              <span className="text-xs text-[#777a72]">({city})</span>
+                            )}
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-[#e5eae4] text-[#344638]">
+                              {screenType}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-3 text-xs text-[#777a72] flex-wrap">
+                            <span className="flex items-center gap-1 text-[#252824] font-medium">
+                              <Tv className="w-3.5 h-3.5 text-[#555850]" />
+                              {screenName}
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1 text-[#344638] font-medium">
+                              <Volume2 className="w-3.5 h-3.5 text-[#344638]" />
+                              Dolby Atmos 7.1
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1 text-[#cf785b] font-medium">
+                              <UtensilsCrossed className="w-3.5 h-3.5 text-[#cf785b]" />
+                              In-Seat Dining Available
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-5 sm:shrink-0 justify-between sm:justify-end border-t sm:border-t-0 pt-3 sm:pt-0 border-stone-100">
+                          <div className="text-left sm:text-right">
+                            <span className="font-display text-xl sm:text-2xl font-bold text-[#252824]">
+                              {startTime.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </span>
+                            <span className="block text-[10px] font-semibold text-[#5d7159] uppercase tracking-wider">
+                              ● Live Seats Open
+                            </span>
+                          </div>
+
+                          <Link
+                            to={`/booking/${st._id}`}
+                            className="px-5 py-3 rounded-full bg-[#252824] hover:bg-[#344638] active:scale-95 text-white text-xs font-semibold tracking-tight transition-all flex items-center gap-1.5 shadow-sm"
+                          >
+                            <span>Select Seats</span>
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          </Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
-                <div className="p-8 rounded-xl bg-white border border-[#e5e3dc] text-center text-sm text-[#777a72]">
-                  No showtimes currently scheduled for this film. Please check back soon or browse other movies.
+                /* Empty state for the date */
+                <div className="p-8 sm:p-10 rounded-2xl bg-white border border-[#e5e3dc] text-center shadow-xs">
+                  <Film className="w-10 h-10 text-stone-400 mx-auto mb-3" />
+                  <h4 className="font-display text-lg font-bold text-[#252824] mb-1">
+                    No Showtimes Scheduled for this Date
+                  </h4>
+                  <p className="text-xs text-[#777a72] max-w-md mx-auto mb-5">
+                    We don't have showtimes scheduled for {selectedDateStr}. Please try selecting another date from the strip above.
+                  </p>
+
+                  {/* 1-Click Demo Schedule Button */}
+                  <button
+                    type="button"
+                    onClick={handleGenerateDemoShowtimes}
+                    disabled={isGeneratingShowtimes}
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#fdf5f2] border border-[#cf785b] text-[#cf785b] hover:bg-[#cf785b] hover:text-white text-xs font-semibold transition-all shadow-xs"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>
+                      {isGeneratingShowtimes ? 'Scheduling...' : '⚡ Generate Showtimes for this Movie'}
+                    </span>
+                  </button>
                 </div>
               )}
-
-              {/* Showtimes Grid */}
-              <div className="space-y-4">
-                {activeShowtimes.map((st) => {
-                  const startTime = new Date(st.startTime);
-                  const theatreName = st.screen?.theatre?.name || 'Premier Multiplex';
-                  const screenName = st.screen?.name || 'Screen 1';
-                  const city = st.screen?.theatre?.city || '';
-
-                  return (
-                    <div
-                      key={st._id}
-                      className="p-5 rounded-xl bg-white border border-[#e5e3dc] shadow-sm hover:border-[#cf785b] transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                    >
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-display font-bold text-base text-[#252824]">
-                            {theatreName}
-                          </span>
-                          {city && (
-                            <span className="text-xs text-[#777a72]">({city})</span>
-                          )}
-                        </div>
-                        <p className="text-xs text-[#777a72]">
-                          Auditorium: <strong className="text-[#252824]">{screenName}</strong> ·{' '}
-                          {st.screen?.screenType || 'Standard'}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-4">
-                        <div className="text-right">
-                          <span className="font-display text-lg font-bold text-[#252824]">
-                            {startTime.toLocaleTimeString('en-US', {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                          <span className="block text-[10px] font-semibold text-[#5d7159] uppercase tracking-wider">
-                            Seats Available
-                          </span>
-                        </div>
-
-                        <Link
-                          to={`/booking/${st._id}`}
-                          className="px-4 py-2.5 rounded-full bg-[#252824] hover:bg-[#344638] text-white text-xs font-semibold tracking-tight transition-colors flex items-center gap-1.5"
-                        >
-                          <span>Select Seats</span>
-                          <ArrowUpRight className="w-3.5 h-3.5" />
-                        </Link>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
           </div>
 
           {/* Right Column: Sticky Reservation Box (StayBnb Style) */}
           <div className="lg:col-span-1">
-            <div className="sticky top-28 bg-white border border-[#e5e3dc] rounded-2xl p-6 shadow-panel space-y-6">
+            <div className="sticky top-24 bg-white border border-[#e5e3dc] rounded-2xl p-6 shadow-panel space-y-6">
               <div className="border-b border-[#e5e3dc] pb-4">
                 <p className="text-xs text-[#777a72] uppercase tracking-wider font-semibold">
                   Ticket Pricing
                 </p>
                 <div className="flex items-baseline gap-1 mt-1">
                   <span className="font-display text-3xl font-extrabold text-[#252824]">
-                    From ₹250.00
+                    From ₹{lowestPrice}.00
                   </span>
                   <span className="text-xs text-[#777a72]">/ seat</span>
                 </div>
               </div>
 
               {/* Seating Tiers Breakdown */}
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-1 border-b border-[#f0efe9]">
-                  <span className="text-[#777a72]">Silver Tier</span>
-                  <span className="font-semibold text-[#252824]">₹250.00</span>
-                </div>
-                <div className="flex justify-between py-1 border-b border-[#f0efe9]">
-                  <span className="text-[#777a72]">Gold Executive</span>
-                  <span className="font-semibold text-[#252824]">₹350.00</span>
-                </div>
-                <div className="flex justify-between py-1">
-                  <span className="text-[#777a72]">Platinum VIP Recliner</span>
-                  <span className="font-semibold text-[#252824]">₹450.00</span>
-                </div>
+              <div className="space-y-2.5 text-xs">
+                {seatCategories.map((cat) => (
+                  <div
+                    key={cat.name}
+                    className="flex justify-between py-1.5 border-b border-[#f0efe9] last:border-0"
+                  >
+                    <span className="text-[#555850] font-medium">{cat.name}</span>
+                    <span className="font-semibold text-[#252824]">₹{cat.price}.00</span>
+                  </div>
+                ))}
               </div>
 
               {/* Guarantee checklist */}
               <div className="space-y-2.5 text-xs text-[#555850] bg-[#f7f6f2] p-4 rounded-xl">
                 <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-[#5d7159] flex-shrink-0" />
-                  <span>10-minute temporary seat hold guarantee</span>
+                  <Check className="w-4 h-4 text-[#5d7159] shrink-0" />
+                  <span>10-minute pessimistic seat hold guarantee</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-[#5d7159] flex-shrink-0" />
-                  <span>Digital QR pass issued upon confirmation</span>
+                  <Check className="w-4 h-4 text-[#5d7159] shrink-0" />
+                  <span>In-seat dining & fresh meal delivery</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-[#5d7159] flex-shrink-0" />
+                  <Check className="w-4 h-4 text-[#5d7159] shrink-0" />
+                  <span>Digital QR boarding pass issued instantly</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-[#5d7159] shrink-0" />
                   <span>Instant simulated refund on cancellation</span>
                 </div>
               </div>
 
               <p className="text-[11px] text-[#777a72] text-center">
-                Click on any scheduled showtime to enter the interactive seating matrix.
+                Click on any scheduled showtime on the left to enter the interactive auditorium layout.
               </p>
             </div>
           </div>

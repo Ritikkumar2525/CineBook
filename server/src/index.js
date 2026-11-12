@@ -15,6 +15,7 @@ const screenRoutes = require('./routes/screenRoutes');
 const showtimeRoutes = require('./routes/showtimeRoutes');
 const bookingRoutes = require('./routes/bookingRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const mealRoutes = require('./routes/mealRoutes');
 
 const app = express();
 
@@ -86,6 +87,7 @@ app.use('/api/screens', screenRoutes);
 app.use('/api/showtimes', showtimeRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/meals', mealRoutes);
 
 // Catch-all 404 handler for unknown routes
 app.use((req, res) => {

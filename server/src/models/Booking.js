@@ -21,6 +21,16 @@ const bookingSeatSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const mealOrderSchema = new mongoose.Schema(
+  {
+    itemId: { type: String, required: true },
+    name: { type: String, required: true },
+    quantity: { type: Number, required: true, min: 1, max: 10 },
+    price: { type: Number, required: true, min: 0 },
+  },
+  { _id: false }
+);
+
 const bookingSchema = new mongoose.Schema(
   {
     user: {
@@ -68,6 +78,15 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       enum: ['pending', 'completed', 'refunded'],
       default: 'completed',
+    },
+    mealOrders: {
+      type: [mealOrderSchema],
+      default: [],
+    },
+    mealTotal: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     cancelledAt: {
       type: Date,
