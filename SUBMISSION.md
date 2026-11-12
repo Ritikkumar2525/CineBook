@@ -24,9 +24,9 @@
 ## 3. Code and Version Control
 | Form Field | Entry Details |
 | :--- | :--- |
-| **Repository URL** | *[Paste your GitHub/GitLab Repository URL]* |
+| **Repository URL** | https://github.com/Ritikkumar2525/CineBook |
 | **Primary Branch** | `main` |
-| **Final Commit ID** | *[Run `git rev-parse HEAD` and paste commit hash]* |
+| **Final Commit ID** | `ba113cd` (or latest HEAD commit) |
 | **Reviewer Access** | Public (or granted read access if private) |
 
 ---
@@ -35,7 +35,7 @@
 | Form Field | Entry Details |
 | :--- | :--- |
 | **Walkthrough Video (3–5 min)** | *[Paste Loom / Google Drive / YouTube unlisted video link]* (Follow [DEMO_GUIDE.md](DEMO_GUIDE.md)) |
-| **Live Web Demo URL** | Declared Local-Only Demo (run locally via `npm run dev`) or *[Paste Vercel/Render URL if hosted]* |
+| **Live Web Demo URL** | https://cinebook-sepia.vercel.app |
 
 ---
 

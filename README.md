@@ -1,5 +1,8 @@
 # 🍿 CineBook — Cinema Hall Ticket Booking System
 
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black?style=for-the-badge&logo=vercel)](https://cinebook-sepia.vercel.app)
+[![GitHub](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/Ritikkumar2525/CineBook)
+
 A full-stack, enterprise-grade cinema hall ticket booking application built with **React 18**, **Node.js/Express**, **MongoDB/Mongoose**, **Framer Motion**, and **Tailwind CSS**.
 
 Developed for the **Algions AI Labs** Full-Stack Web Development Advanced Individual Project Assessment.
